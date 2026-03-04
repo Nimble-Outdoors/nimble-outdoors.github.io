@@ -25,18 +25,18 @@
      ============================================ */
 
   /* Primary - Forest Green */
-  --color-primary: #2D5A27;
+  --color-primary: #1F3D1B;
   --color-primary-dark: #1E3D1A;
 
   /* Secondary - Warm Orange */
-  --color-secondary: #F4A261;
+  --color-secondary: black;
   --color-secondary-dark: #E0763B;
 
   /* Neutrals */
   --color-text: #FFF;
   --color-text-light: #CCC;
   --color-bg: #000;
-  --color-bg-alt: #111;
+  --color-bg-alt: #222;
 
   /* Shadows */
   --color-shadow: rgba(0, 0, 0, 0.1);
@@ -343,6 +343,10 @@ a {
 .copyright {
   opacity: 0.5;
   font-size: 0.9rem;
+}
+
+.grecaptcha-badge {
+  display: none !important;
 }
 
 /* Responsive */
