@@ -24,7 +24,7 @@ hero:
     <div class="features-grid">
       <div class="feature-card">
         <h3>Lightest Sticks</h3>
-        <p>No other climbing sticks are this light. These are hand crafted carbon fiber compsite sticks.</p>
+        <p>These are hand crafted carbon fiber composite sticks. You won't find anything lighter.</p>
       </div>
       <div class="feature-card">
         <h3>Easiest Setup</h3>
@@ -32,7 +32,7 @@ hero:
       </div>
       <div class="feature-card">
         <h3>Uncompromising Comfort</h3>
-        <p>20 inch sticks. 5 inchc stand off. Durable grip pad. How can this be true, 13 oz??</p>
+        <p>20 inch sticks. 5 inch stand-off. How can this be true at 13 oz??</p>
       </div>
     </div>
   </div>
@@ -73,6 +73,7 @@ hero:
         form.reset()
       } else {
         response.json().then(data => {
+          console.log('Formspree error response:', data);
           if (Object.hasOwn(data, 'errors')) {
             status.innerHTML = data["errors"].map(error => error["message"]).join(", ")
           } else {
@@ -81,6 +82,7 @@ hero:
         })
       }
     }).catch(error => {
+        console.log('Form submission error:', error);
         status.innerHTML = "Oops! Something went wrong. Try just emailing joey@nimbleoutdoorsllc.com"
     });
   }
