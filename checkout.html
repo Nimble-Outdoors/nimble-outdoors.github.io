@@ -1,0 +1,112 @@
+---
+layout: landing
+title: "Nimble Outdoors - Checkout"
+description: "Complete your preorder for Nimble Climbing Sticks"
+---
+
+<section class="checkout-section">
+  <div class="container">
+    <h2>Checkout</h2>
+    <div class="checkout-grid">
+      <div class="checkout-summary">
+        <h3>Your Order</h3>
+        <div class="checkout-product-card">
+          <div class="checkout-stick-visual" id="cartSticks"></div>
+          <div class="checkout-product-info">
+            <h4 id="cartName">Nimble Climbing Sticks — 4-Pack</h4>
+            <p class="checkout-product-price" id="cartPrice">$249.00</p>
+            <ul class="checkout-product-specs" id="cartSpecs">
+              <li><strong>4</strong> carbon fiber sticks</li>
+              <li><strong>3 lb 4 oz</strong> total weight</li>
+              <li><strong>~16 ft</strong> climb height</li>
+              <li>Daisy chain rope attachment</li>
+              <li>Made in Osseo, Wisconsin</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="checkout-payment">
+        <form name="helcimForm" id="helcimForm" action="https://nimble-helcim.YOUR_USERNAME.workers.dev" method="POST">
+          <div id="helcimResults"></div>
+
+          <input type="hidden" id="token" value="YOUR_HELCIM_JS_TOKEN">
+          <input type="hidden" id="amount" value="249.00">
+          <input type="hidden" id="currency" value="USD">
+
+          <div class="form-group">
+            <label for="cardHolderName">Cardholder Name</label>
+            <input type="text" id="cardHolderName" placeholder="John Smith">
+          </div>
+
+          <div class="form-group">
+            <label for="cardNumber">Card Number</label>
+            <input type="text" id="cardNumber" placeholder="1234 5678 9012 3456">
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="cardExpiryMonth">Expiry (MM)</label>
+              <input type="text" id="cardExpiryMonth" placeholder="12">
+            </div>
+            <div class="form-group">
+              <label for="cardExpiryYear">Expiry (YY)</label>
+              <input type="text" id="cardExpiryYear" placeholder="28">
+            </div>
+            <div class="form-group form-group-cvv">
+              <label for="cardCVV">CVV</label>
+              <input type="text" id="cardCVV" placeholder="123">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="cardHolderAddress">Billing Address</label>
+            <input type="text" id="cardHolderAddress" placeholder="123 Main St">
+          </div>
+
+          <div class="form-group">
+            <label for="cardHolderPostalCode">ZIP / Postal Code</label>
+            <input type="text" id="cardHolderPostalCode" placeholder="12345">
+          </div>
+
+          <button type="button" id="buttonProcess" class="btn btn-primary" onclick="helcimProcess();">
+            Pay $249.00
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  var packs = [
+    { name: "3-Pack", price: 199, weight: "2 lb 7 oz", sticks: 3, climb: "~12 ft", desc: "Lightest setup. Perfect for run-and-gun hunts." },
+    { name: "4-Pack", price: 249, weight: "3 lb 4 oz", sticks: 4, climb: "~16 ft", desc: "The sweet spot. Enough height for most setups." },
+    { name: "5-Pack", price: 299, weight: "4 lb 1 oz", sticks: 5, climb: "~20 ft", desc: "Maximum reach. For hunters who want every option." }
+  ];
+
+  var params = new URLSearchParams(window.location.search);
+  var packIndex = parseInt(params.get("pack")) || 2;
+  if (packIndex < 1 || packIndex > 3) packIndex = 2;
+  var pack = packs[packIndex - 1];
+
+  var sticksEl = document.getElementById("cartSticks");
+  for (var i = 0; i < pack.sticks; i++) {
+    var s = document.createElement("span");
+    s.className = "checkout-stick-icon";
+    sticksEl.appendChild(s);
+  }
+
+  document.getElementById("cartName").textContent = "Nimble Climbing Sticks \u2014 " + pack.name;
+  document.getElementById("cartPrice").textContent = "$" + pack.price.toFixed(2);
+
+  var specsHtml =
+    "<li><strong>" + pack.sticks + "</strong> carbon fiber sticks</li>" +
+    "<li><strong>" + pack.weight + "</strong> total weight</li>" +
+    "<li><strong>" + pack.climb + "</strong> climb height</li>" +
+    "<li>Daisy chain rope attachment</li>" +
+    "<li>Made in Osseo, Wisconsin</li>";
+  document.getElementById("cartSpecs").innerHTML = specsHtml;
+
+  document.getElementById("amount").value = pack.price.toFixed(2);
+  document.getElementById("buttonProcess").textContent = "Pay $" + pack.price.toFixed(2);
+</script>

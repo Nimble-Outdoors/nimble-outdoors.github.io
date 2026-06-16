@@ -1,0 +1,144 @@
+---
+layout: landing
+title: "Nimble Outdoors - Choose &amp; Checkout"
+description: "Choose your pack and complete your preorder"
+---
+
+<section class="checkout-section">
+  <div class="container">
+    <h2>Choose Your Pack &amp; Checkout</h2>
+    <div class="checkout-grid">
+      <div class="checkout-selector">
+        <div class="checkout-pack-cards" id="packCards">
+          {% for pack in site.data.prices.packs %}
+           <div class="checkout-pack-card" data-index="{{ forloop.index0 }}" data-price="{{ pack.price }}" data-sticks="{{ pack.sticks }}" data-weight="{{ pack.weight }}" data-climb="{{ pack.climb }}" data-name="{{ pack.name }}" data-desc="{{ pack.description }}">
+            <div class="checkout-pack-visual">
+              {% for i in (1..pack.sticks) %}
+              <span class="checkout-pack-dot"></span>
+              {% endfor %}
+            </div>
+            <h3 class="checkout-pack-name">{{ pack.name }}</h3>
+            <p class="checkout-pack-price">${{ pack.price }}</p>
+            <p class="checkout-pack-desc">{{ pack.description }}</p>
+            <div class="checkout-pack-check">&#10003;</div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="checkout-payment">
+        <div class="checkout-selected-details" id="selectedDetails">
+          <div class="checkout-selected-sticks" id="selectedSticks"></div>
+          <div class="checkout-selected-info">
+            <div class="checkout-selected-stats">
+              <div class="checkout-selected-stat">
+                <span class="checkout-selected-stat-value" id="selSticks">4</span>
+                <span class="checkout-selected-stat-label">Sticks</span>
+              </div>
+              <div class="checkout-selected-stat">
+                <span class="checkout-selected-stat-value" id="selWeight">3 lb 4 oz</span>
+                <span class="checkout-selected-stat-label">Total Weight</span>
+              </div>
+              <div class="checkout-selected-stat">
+                <span class="checkout-selected-stat-value" id="selClimb">~16 ft</span>
+                <span class="checkout-selected-stat-label">Climb Height</span>
+              </div>
+            </div>
+            <div class="checkout-selected-total">
+              <span class="checkout-selected-total-label">Total</span>
+              <span class="checkout-selected-total-price" id="selPrice">$249</span>
+            </div>
+          </div>
+        </div>
+        <form name="helcimForm" id="helcimForm" action="https://nimble-helcim.YOUR_USERNAME.workers.dev" method="POST">
+          <div id="helcimResults"></div>
+
+          <input type="hidden" id="token" value="YOUR_HELCIM_JS_TOKEN">
+          <input type="hidden" id="amount" value="249.00">
+          <input type="hidden" id="currency" value="USD">
+
+          <div class="form-group">
+            <label for="cardHolderName">Cardholder Name</label>
+            <input type="text" id="cardHolderName" placeholder="John Smith">
+          </div>
+
+          <div class="form-group">
+            <label for="cardNumber">Card Number</label>
+            <input type="text" id="cardNumber" placeholder="1234 5678 9012 3456">
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="cardExpiryMonth">Expiry (MM)</label>
+              <input type="text" id="cardExpiryMonth" placeholder="12">
+            </div>
+            <div class="form-group">
+              <label for="cardExpiryYear">Expiry (YY)</label>
+              <input type="text" id="cardExpiryYear" placeholder="28">
+            </div>
+            <div class="form-group form-group-cvv">
+              <label for="cardCVV">CVV</label>
+              <input type="text" id="cardCVV" placeholder="123">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="cardHolderAddress">Billing Address</label>
+            <input type="text" id="cardHolderAddress" placeholder="123 Main St">
+          </div>
+
+          <div class="form-group">
+            <label for="cardHolderPostalCode">ZIP / Postal Code</label>
+            <input type="text" id="cardHolderPostalCode" placeholder="12345">
+          </div>
+
+          <button type="button" id="buttonProcess" class="btn btn-primary" onclick="helcimProcess();">
+            Pay $249.00
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  var packs = [
+    {% for pack in site.data.prices.packs %}
+    { name: "{{ pack.name }}", price: {{ pack.price }}, weight: "{{ pack.weight }}", sticks: {{ pack.sticks }}, climb: "{{ pack.climb }}", desc: "{{ pack.description }}" },
+    {% endfor %}
+  ];
+
+  var selectedIndex = 1;
+
+  function selectPack(index) {
+    selectedIndex = index;
+    var pack = packs[index];
+
+    document.querySelectorAll(".checkout-pack-card").forEach(function(el) {
+      el.classList.toggle("checkout-pack-card--selected", parseInt(el.dataset.index) === index);
+    });
+
+    document.getElementById("amount").value = pack.price.toFixed(2);
+    document.getElementById("buttonProcess").textContent = "Pay $" + pack.price.toFixed(2);
+
+    document.getElementById("selSticks").textContent = pack.sticks;
+    document.getElementById("selWeight").textContent = pack.weight;
+    document.getElementById("selClimb").textContent = pack.climb;
+    document.getElementById("selPrice").textContent = "$" + pack.price;
+
+    var sticksEl = document.getElementById("selectedSticks");
+    sticksEl.innerHTML = "";
+    for (var i = 0; i < pack.sticks; i++) {
+      var s = document.createElement("span");
+      s.className = "checkout-stick-icon";
+      sticksEl.appendChild(s);
+    }
+  }
+
+  document.querySelectorAll(".checkout-pack-card").forEach(function(el) {
+    el.addEventListener("click", function() {
+      selectPack(parseInt(this.dataset.index));
+    });
+  });
+
+  selectPack(selectedIndex);
+</script>

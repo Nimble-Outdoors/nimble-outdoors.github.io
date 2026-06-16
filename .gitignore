@@ -4,3 +4,8 @@
 _site/
 .DS_Store
 *.swp
+.env
+.env.*
+.wrangler/
+*.pem
+*.key

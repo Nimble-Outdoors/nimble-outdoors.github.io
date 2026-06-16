@@ -1,0 +1,195 @@
+---
+layout: landing
+title: "Nimble Outdoors — Nimble Climbing Sticks"
+description: "Ultra lightweight carbon fiber climbing sticks. Choose your pack."
+---
+
+<section class="shop-c-hero">
+  <div class="shop-c-hero-bg"></div>
+  <div class="container">
+    <div class="shop-c-hero-inner">
+      <div class="shop-c-hero-content">
+        <p class="shop-c-hero-sku">Nimble Climbing Sticks</p>
+        <h1>Lightest.<br>Fastest.<br>Carbon Fiber.</h1>
+        <p class="shop-c-hero-desc">13 oz per stick. 20 inches. 5-inch stand-off. Every stick is hand crafted in Wisconsin — because your climb matters.</p>
+        <a href="#selector" class="btn btn-primary">Choose Your Pack</a>
+      </div>
+      <div class="shop-c-hero-visual">
+        <div class="shop-c-sticks-graphic">
+          {% for i in (1..5) %}
+          <span class="shop-c-stick" style="--i: {{ i }}"></span>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="shop-c-selector" id="selector">
+  <div class="container">
+    <div class="shop-c-display" id="packDisplay">
+      <div class="shop-c-display-visual">
+        <div class="shop-c-display-sticks" id="displaySticks">
+          {% for i in (1..4) %}
+          <span class="shop-c-display-stick"></span>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="shop-c-display-info">
+        <h2>Choose Your Pack</h2>
+        <div class="shop-c-toggles" id="packToggles">
+          <button class="shop-c-toggle" data-index="0">3-Pack</button>
+          <button class="shop-c-toggle active" data-index="1">4-Pack</button>
+          <button class="shop-c-toggle" data-index="2">5-Pack</button>
+        </div>
+        <p class="shop-c-display-desc" id="packDesc"></p>
+        <div class="shop-c-display-stats">
+          <div class="shop-c-stat">
+            <span class="shop-c-stat-value" id="packSticks">4</span>
+            <span class="shop-c-stat-label">Sticks</span>
+          </div>
+          <div class="shop-c-stat">
+            <span class="shop-c-stat-value" id="packWeight">3 lb 4 oz</span>
+            <span class="shop-c-stat-label">Total Weight</span>
+          </div>
+          <div class="shop-c-stat">
+            <span class="shop-c-stat-value" id="packClimb">~16 ft</span>
+            <span class="shop-c-stat-label">Climb Height</span>
+          </div>
+        </div>
+        <p class="shop-c-display-price" id="packPrice">$249</p>
+        <a href="/checkout.html?pack=2" class="btn btn-primary" id="preorderLink1">Preorder Now</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="shop-c-features">
+  <div class="container">
+    <div class="shop-c-features-grid">
+      <div class="shop-c-feature">
+        <div class="shop-c-feature-icon">
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><path d="M16 4L4 12v8l12 8 12-8v-8L16 4z" stroke="#1F3D1B" stroke-width="2" fill="none"/><circle cx="16" cy="16" r="3" fill="#1F3D1B"/></svg>
+        </div>
+        <h3>13 oz Per Stick</h3>
+        <p>Hand laid carbon fiber composite. Lighter than anything on the market without sacrificing strength.</p>
+      </div>
+      <div class="shop-c-feature">
+        <div class="shop-c-feature-icon">
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><path d="M6 26L16 6l10 20H6z" stroke="#1F3D1B" stroke-width="2" fill="none"/><circle cx="16" cy="18" r="2" fill="#1F3D1B"/></svg>
+        </div>
+        <h3>5-Inch Stand-off</h3>
+        <p>Deep stand-off means your foot has room. Climb comfortably even in bulky boots.</p>
+      </div>
+      <div class="shop-c-feature">
+        <div class="shop-c-feature-icon">
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><path d="M4 16h24M16 4v24" stroke="#1F3D1B" stroke-width="2"/><circle cx="16" cy="16" r="12" stroke="#1F3D1B" stroke-width="2" fill="none"/></svg>
+        </div>
+        <h3>20-Inch Length</h3>
+        <p>The optimal balance of step height and packability. You won't find a better climbing stick on the market.</p>
+      </div>
+      <div class="shop-c-feature">
+        <div class="shop-c-feature-icon">
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><path d="M8 8h16v16H8z" stroke="#1F3D1B" stroke-width="2" fill="none"/><circle cx="16" cy="12" r="2" fill="#1F3D1B"/><path d="M10 20c2-3 4-4 6-4s4 1 6 4" stroke="#1F3D1B" stroke-width="2" fill="none"/></svg>
+        </div>
+        <h3>Daisy Chain Rope</h3>
+        <p>Zip, zip, done. The daisy chain attachment system is faster than any strap or button. No going back.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="shop-c-story">
+  <div class="container">
+    <div class="shop-c-story-inner">
+      <div class="shop-c-story-content">
+        <h2>Built for the mobile hunter</h2>
+        <p>Every Nimble stick starts as raw carbon fiber in a small shop in western Wisconsin. No overseas factory. No corners cut.</p>
+        <p>We designed these sticks for one reason: to get you higher, faster, with less weight on your back. The daisy chain system means you're set up in seconds. The 5-inch stand-off gives you room to move. At 13 oz, you'll forget you're carrying them.</p>
+        <p>Whether you're running 3 sticks for a quick evening hunt or packing 5 for a deep woods saddle hunt — these sticks will change how you climb.</p>
+      </div>
+      <div class="shop-c-story-visual">
+        <div class="shop-c-story-sticks">
+          <span class="shop-c-story-stick"></span>
+          <span class="shop-c-story-stick"></span>
+          <span class="shop-c-story-stick"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="shop-c-specs">
+  <div class="container">
+    <h2>Specifications</h2>
+    <table class="shop-c-specs-table">
+      <tr><td>Weight Per Stick</td><td>13 oz</td></tr>
+      <tr><td>Stick Length</td><td>20 inches</td></tr>
+      <tr><td>Stand-off</td><td>5 inches</td></tr>
+      <tr><td>Material</td><td>Carbon fiber composite</td></tr>
+      <tr><td>Attachment</td><td>Daisy chain rope</td></tr>
+      <tr><td>Made In</td><td>USA — Osseo, Wisconsin</td></tr>
+    </table>
+  </div>
+</section>
+
+<section class="shop-c-cta">
+  <div class="container">
+    <h2>Ready to climb lighter?</h2>
+    <div class="shop-c-cta-selector">
+      <div class="shop-c-cta-toggles" id="ctaToggles">
+        <button class="shop-c-toggle shop-c-toggle--sm" data-index="0">3-Pack — $199</button>
+        <button class="shop-c-toggle shop-c-toggle--sm active" data-index="1">4-Pack — $249</button>
+        <button class="shop-c-toggle shop-c-toggle--sm" data-index="2">5-Pack — $299</button>
+      </div>
+    </div>
+    <p class="shop-c-cta-price" id="ctaPrice">$249</p>
+    <a href="/checkout.html?pack=2" class="btn btn-primary" id="preorderLink2">Preorder Now</a>
+    <p class="shop-c-cta-note">Questions? Call or text Joey — 715-530-2464</p>
+  </div>
+</section>
+
+<script>
+  var packs = [
+    { name: "3-Pack", price: 199, weight: "2 lb 7 oz", sticks: 3, climb: "~12 ft", desc: "Lightest setup. Perfect for run-and-gun hunts." },
+    { name: "4-Pack", price: 249, weight: "3 lb 4 oz", sticks: 4, climb: "~16 ft", desc: "The sweet spot. Enough height for most setups." },
+    { name: "5-Pack", price: 299, weight: "4 lb 1 oz", sticks: 5, climb: "~20 ft", desc: "Maximum reach. For hunters who want every option." }
+  ];
+
+  var selected = 0;
+
+  var displaySticks = document.getElementById("displaySticks");
+
+  function selectPack(index) {
+    selected = index;
+    var pack = packs[index];
+
+    document.querySelectorAll(".shop-c-toggle").forEach(function(el) {
+      el.classList.toggle("active", parseInt(el.dataset.index) === index);
+    });
+
+    document.getElementById("packDesc").textContent = pack.desc;
+    document.getElementById("packSticks").textContent = pack.sticks;
+    document.getElementById("packWeight").textContent = pack.weight;
+    document.getElementById("packClimb").textContent = pack.climb;
+    document.getElementById("packPrice").textContent = "$" + pack.price;
+    document.getElementById("ctaPrice").textContent = "$" + pack.price;
+    document.getElementById("preorderLink1").href = "/checkout.html?pack=" + (index + 1);
+    document.getElementById("preorderLink2").href = "/checkout.html?pack=" + (index + 1);
+
+    displaySticks.innerHTML = "";
+    for (var i = 0; i < pack.sticks; i++) {
+      var stick = document.createElement("span");
+      stick.className = "shop-c-display-stick";
+      displaySticks.appendChild(stick);
+    }
+  }
+
+  document.querySelectorAll(".shop-c-toggle").forEach(function(el) {
+    el.addEventListener("click", function() {
+      selectPack(parseInt(this.dataset.index));
+    });
+  });
+
+  selectPack(1);
+</script>
