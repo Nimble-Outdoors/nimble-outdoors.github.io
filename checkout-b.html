@@ -49,54 +49,18 @@ description: "Choose your pack and complete your preorder"
             </div>
           </div>
         </div>
-        <form name="helcimForm" id="helcimForm" action="https://nimble-helcim.YOUR_USERNAME.workers.dev" method="POST">
+        <form id="helcimForm">
           <div id="helcimResults"></div>
 
-          <input type="hidden" id="token" value="YOUR_HELCIM_JS_TOKEN">
-          <input type="hidden" id="amount" value="249.00">
-          <input type="hidden" id="currency" value="USD">
-
           <div class="form-group">
-            <label for="cardHolderEmail">Email Address</label>
-            <input type="email" id="cardHolderEmail" placeholder="john@example.com" required>
+            <label for="email">Email Address</label>
+            <input type="email" id="email" placeholder="john@example.com" required>
           </div>
 
-          <div class="form-group">
-            <label for="cardHolderName">Cardholder Name</label>
-            <input type="text" id="cardHolderName" placeholder="John Smith" required>
+          <div id="stripe-payment-element" style="margin-bottom:24px">
           </div>
 
-          <div class="form-group">
-            <label for="cardNumber">Card Number</label>
-            <input type="text" id="cardNumber" placeholder="1234 5678 9012 3456" required>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label for="cardExpiryMonth">Expiry (MM)</label>
-              <input type="text" id="cardExpiryMonth" placeholder="12" required>
-            </div>
-            <div class="form-group">
-              <label for="cardExpiryYear">Expiry (YY)</label>
-              <input type="text" id="cardExpiryYear" placeholder="28" required>
-            </div>
-            <div class="form-group form-group-cvv">
-              <label for="cardCVV">CVV</label>
-              <input type="text" id="cardCVV" placeholder="123" required>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label for="cardHolderAddress">Billing Address</label>
-            <input type="text" id="cardHolderAddress" placeholder="123 Main St" required>
-          </div>
-
-          <div class="form-group">
-            <label for="cardHolderPostalCode">ZIP / Postal Code</label>
-            <input type="text" id="cardHolderPostalCode" placeholder="12345" required>
-          </div>
-
-          <button type="button" id="buttonProcess" class="btn btn-primary" onclick="validateAndProcess();">
+          <button type="submit" id="submit-btn" class="btn btn-primary">
             Pay $249.00
           </button>
         </form>
@@ -105,7 +69,11 @@ description: "Choose your pack and complete your preorder"
   </div>
 </section>
 
+<script src="https://js.stripe.com/v3/"></script>
 <script>
+  var WORKER_URL = 'https://nimble-stripe.YOUR_USERNAME.workers.dev';
+  var STRIPE_PK = 'pk_live_51TmefYPQzgCkAZkTnvdVyDKW9EfnkC2NPfPwwC0wNywNIG3uGmUlCcbDDH60LzqSsSDqH6Fi28I1hn3xNvQD3aCQ00jVy3AgG9';
+
   var packs = [
     {% for pack in site.data.prices.packs %}
     { name: "{{ pack.name }}", price: {{ pack.price }}, weight: "{{ pack.weight }}", sticks: {{ pack.sticks }}, climb: "{{ pack.climb }}", desc: "{{ pack.description }}" },
@@ -122,8 +90,7 @@ description: "Choose your pack and complete your preorder"
       el.classList.toggle("checkout-pack-card--selected", parseInt(el.dataset.index) === index);
     });
 
-    document.getElementById("amount").value = pack.price.toFixed(2);
-    document.getElementById("buttonProcess").textContent = "Pay $" + pack.price.toFixed(2);
+    document.getElementById("submit-btn").textContent = "Pay $" + pack.price.toFixed(2);
 
     document.getElementById("selSticks").textContent = pack.sticks;
     document.getElementById("selWeight").textContent = pack.weight;
@@ -147,15 +114,87 @@ description: "Choose your pack and complete your preorder"
 
   selectPack(selectedIndex);
 
-  function validateAndProcess() {
-    var email = document.getElementById("cardHolderEmail");
-    var error = document.getElementById("helcimResults");
-    if (!email.value || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)) {
-      error.innerHTML = '<p style="color:#ff6b6b;margin:0 0 1rem">Please enter a valid email address so we can send your receipt.</p>';
-      email.focus();
-      return;
+  var stripe = Stripe(STRIPE_PK);
+  var form = document.getElementById("helcimForm");
+  var submitBtn = document.getElementById("submit-btn");
+  var resultEl = document.getElementById("helcimResults");
+  var emailInput = document.getElementById("email");
+
+  async function initializeCheckout() {
+    resultEl.innerHTML = '<p style="color:#ccc">Setting up payment form…</p>';
+
+    try {
+      var pack = packs[selectedIndex];
+
+      var response = await fetch(WORKER_URL + '/api/create-payment-intent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount: pack.price,
+          packName: pack.name,
+          email: emailInput.value || undefined,
+        }),
+      });
+
+      if (!response.ok) {
+        var errData = await response.json();
+        throw new Error(errData.error || 'Failed to create payment');
+      }
+
+      var data = await response.json();
+      var clientSecret = data.clientSecret;
+
+      var appearance = {
+        theme: 'night',
+        variables: {
+          colorPrimary: '#1F3D1B',
+          colorBackground: '#222222',
+          colorText: '#ffffff',
+          colorDanger: '#ff6b6b',
+          fontFamily: 'system-ui, sans-serif',
+          borderRadius: '4px',
+        },
+      };
+
+      var elements = stripe.elements({ clientSecret: clientSecret, appearance: appearance });
+      var paymentElement = elements.create('payment');
+      paymentElement.mount('#stripe-payment-element');
+      resultEl.innerHTML = '';
+
+      form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Processing…';
+
+        var pack = packs[selectedIndex];
+        var email = emailInput.value;
+
+        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+          resultEl.innerHTML = '<p style="color:#ff6b6b;margin:0 0 1rem">Please enter a valid email address so we can send your receipt.</p>';
+          emailInput.focus();
+          submitBtn.disabled = false;
+          submitBtn.textContent = "Pay $" + pack.price.toFixed(2);
+          return;
+        }
+
+        var confirmResult = await stripe.confirmPayment({
+          elements: elements,
+          confirmParams: {
+            return_url: WORKER_URL + '/confirm',
+            receipt_email: email,
+          },
+        });
+
+        if (confirmResult.error) {
+          resultEl.innerHTML = '<p style="color:#ff6b6b;margin:0 0 1rem">' + confirmResult.error.message + '</p>';
+          submitBtn.disabled = false;
+          submitBtn.textContent = "Pay $" + pack.price.toFixed(2);
+        }
+      });
+    } catch (err) {
+      resultEl.innerHTML = '<p style="color:#ff6b6b;margin:0 0 1rem">' + err.message + '</p>';
     }
-    error.innerHTML = '';
-    helcimProcess();
   }
+
+  initializeCheckout();
 </script>

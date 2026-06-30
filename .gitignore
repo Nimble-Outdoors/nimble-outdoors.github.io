@@ -9,3 +9,5 @@ _site/
 .wrangler/
 *.pem
 *.key
+# Node.js dev dependencies (vitest, jsdom)
+node_modules/

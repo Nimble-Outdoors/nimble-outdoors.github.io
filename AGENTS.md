@@ -10,6 +10,12 @@ bundle exec jekyll serve --livereload
 
 # Build
 bundle exec jekyll build
+
+# JS tests (Vitest) — always run before committing any JS changes
+npm test
+
+# Watch mode for TDD
+npm run test:watch
 ```
 
 Ruby 3.2.2 is expected (managed via `mise.toml`). Run `bundle install` first.
@@ -22,6 +28,9 @@ Push to `main` → GitHub Actions builds with `bundle exec jekyll build` and dep
 
 - `index.html` — the landing page (layout: `default`, hero + features + email signup CTA)
 - `404.html` — custom 404
+- `shop-c.html` — product page with pack selector, links to checkout
+- `checkout.html` — checkout page (pack chosen via `?pack=N` query param)
+- `checkout-b.html` — checkout page with inline pack selector
 - `_layouts/default.html` — no nav header, just footer
 - `_layouts/landing.html` — with nav header
 - `_includes/header.html` — brand logo only
@@ -32,19 +41,30 @@ Push to `main` → GitHub Actions builds with `bundle exec jekyll build` and dep
 
 - **Formspree** — signup form submits to `https://formspree.io/f/mykdrwlr`
 - **Google reCAPTCHA v2** — site key `6Lfr-agpAAAAAAfwGOtDvgX6cI0woP5J9VPMui7C`, hidden via `.grecaptcha-badge { display: none !important }`
-- **Helcim.js** — payment processing on the preorder form (script from `https://secure.myhelcim.com/js/version2.js`)
-- **Cloudflare Worker** — `worker/` directory contains a Worker that handles the Helcim.js POST response. Deployed separately via `npx wrangler deploy`.
+- **Stripe** — payment processing on the preorder forms (checkout.html, checkout-b.html)
+- **Cloudflare Worker** — `worker/` directory contains a Worker that creates Stripe PaymentIntents and serves confirmation pages. Deployed separately via `npx wrangler deploy`.
 
-## Helcim.js preorder form
+## Stripe preorder form
 
-The preorder section in `index.html` embeds a Helcim.js payment form (custom HTML/CSS, no iFrame). Card data flows browser → Helcim via CORS. The `token` hidden field value must be replaced with a real Helcim.js Configuration token from the Helcim dashboard.
+The checkout pages use Stripe PaymentElement (embedded UI, not Checkout's hosted page). The flow:
 
-The form's `action` is the Worker's `*.workers.dev` URL — update `YOUR_USERNAME` after deploying. For local testing, point it to the same URL (the Worker is already deployed to Cloudflare's edge).
+1. Page loads → calls `POST /api/create-payment-intent` on the Worker
+2. Worker creates a Stripe PaymentIntent and returns `client_secret`
+3. Frontend mounts `stripe.elements()` with a PaymentElement
+4. User submits → `stripe.confirmPayment()` redirects to the Worker's `/confirm` endpoint
+5. Worker renders a success/failure HTML page with matching dark theme
 
-The Worker (`worker/src/index.js`) receives the POST response, checks for success/failure, and returns an HTML confirmation page with matching dark theme.
+### Setup steps
+
+1. Get Stripe publishable key (`pk_live_...`) and secret key (`sk_live_...`) from the Stripe dashboard
+2. Replace `YOUR_STRIPE_PUBLISHABLE_KEY` in `checkout.html` and `checkout-b.html`
+3. Replace `YOUR_USERNAME` with your Cloudflare Workers subdomain in both checkout files and `worker/wrangler.toml`
+4. Set the Worker secret: `cd worker && npx wrangler secret put STRIPE_SECRET_KEY`
+5. Deploy: `cd worker && npx wrangler deploy`
+6. For settings: in the Stripe dashboard, configure the `return_url` under Settings → Payment Methods if needed
 
 ## Notable
 
-- No tests, no linter, no typechecker — just Jekyll build as validation
+- JS tests live in `tests/` and use Vitest with jsdom for DOM tests. Always write tests first (TDD) when working with any JavaScript logic, including inline scripts in HTML files.
 - The `default` layout intentionally has no header (comment: `Header removed`)
 - No blog posts, collections, or data files — pure static brochure site

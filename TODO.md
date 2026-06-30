@@ -1,6 +1,6 @@
-1. Login to helcim account
-2. Create a Helcim.js Configuration in the dashboard, copy the token
-3. Replace `YOUR_HELCIM_JS_TOKEN` in `index.html` with the token
-4. Replace `YOUR_USERNAME` in `index.html` with your Cloudflare Workers subdomain
-5. Run `cd worker && npx wrangler deploy`
+1. Create a Stripe account and get API keys
+2. Replace `YOUR_STRIPE_PUBLISHABLE_KEY` in `checkout.html` and `checkout-b.html`
+3. Replace `YOUR_USERNAME` in `checkout.html` and `checkout-b.html` with your Cloudflare Workers subdomain
+4. Set the Worker secret: `cd worker && npx wrangler secret put STRIPE_SECRET_KEY`
+5. Deploy the Worker: `cd worker && npx wrangler deploy`
 6. Push to `main`
