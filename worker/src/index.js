@@ -4,11 +4,11 @@
 
 const STRIPE_API = 'https://api.stripe.com/v1';
 
-async function stripeApi(path, options = {}) {
+async function stripeApi(path, secretKey = globalThis.STRIPE_SECRET_KEY, options = {}) {
   const resp = await fetch(STRIPE_API + path, {
     ...options,
     headers: {
-      'Authorization': 'Bearer ' + STRIPE_SECRET_KEY,
+      'Authorization': 'Bearer ' + secretKey,
       'Content-Type': 'application/x-www-form-urlencoded',
       ...options.headers,
     },
@@ -64,7 +64,7 @@ function confirmationPage(success, data) {
 }
 
 export default {
-  async fetch(request) {
+  async fetch(request, env = {}) {
     const url = new URL(request.url);
     const corsHeaders = {
       'Access-Control-Allow-Origin': '*',
@@ -95,14 +95,14 @@ export default {
           amount: String(cents),
           currency: 'usd',
           description: description,
-          'automatic_payment_methods[enabled]': 'true',
+          'payment_method_types[]': 'card',
         });
 
         if (email) {
           body.set('receipt_email', email);
         }
 
-        const pi = await stripeApi('/payment_intents', {
+        const pi = await stripeApi('/payment_intents', env.STRIPE_SECRET_KEY || globalThis.STRIPE_SECRET_KEY, {
           method: 'POST',
           body: body.toString(),
         });
@@ -125,7 +125,7 @@ export default {
 
       if (paymentIntentId) {
         try {
-          const pi = await stripeApi('/payment_intents/' + paymentIntentId);
+          const pi = await stripeApi('/payment_intents/' + paymentIntentId, env.STRIPE_SECRET_KEY || globalThis.STRIPE_SECRET_KEY);
           const html = confirmationPage(pi.status === 'succeeded', pi);
           return new Response(html, {
             headers: { 'content-type': 'text/html; charset=utf-8' },

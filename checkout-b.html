@@ -57,6 +57,36 @@ description: "Choose your pack and complete your preorder"
             <input type="email" id="email" placeholder="john@example.com" required>
           </div>
 
+          <fieldset class="shipping-fieldset">
+            <legend>Shipping Address</legend>
+            <div class="form-group">
+              <label for="ship-name">Full Name</label>
+              <input type="text" id="ship-name" placeholder="John Doe" required>
+            </div>
+            <div class="form-group">
+              <label for="ship-address">Address Line 1</label>
+              <input type="text" id="ship-address" placeholder="123 Main St" required>
+            </div>
+            <div class="form-group">
+              <label for="ship-address2">Address Line 2 (optional)</label>
+              <input type="text" id="ship-address2" placeholder="Apt, Suite, etc.">
+            </div>
+            <div class="form-row">
+              <div class="form-group form-group-half">
+                <label for="ship-city">City</label>
+                <input type="text" id="ship-city" placeholder="City" required>
+              </div>
+              <div class="form-group form-group-quarter">
+                <label for="ship-state">State</label>
+                <input type="text" id="ship-state" placeholder="WI" required>
+              </div>
+              <div class="form-group form-group-quarter">
+                <label for="ship-zip">ZIP Code</label>
+                <input type="text" id="ship-zip" placeholder="54701" required>
+              </div>
+            </div>
+          </fieldset>
+
           <div id="stripe-payment-element" style="margin-bottom:24px">
           </div>
 
@@ -70,9 +100,14 @@ description: "Choose your pack and complete your preorder"
 </section>
 
 <script src="https://js.stripe.com/v3/"></script>
-<script>
-  var WORKER_URL = 'https://nimble-stripe.YOUR_USERNAME.workers.dev';
-  var STRIPE_PK = 'pk_live_51TmefYPQzgCkAZkTnvdVyDKW9EfnkC2NPfPwwC0wNywNIG3uGmUlCcbDDH60LzqSsSDqH6Fi28I1hn3xNvQD3aCQ00jVy3AgG9';
+<script type="module">
+  import { renderStickIcons } from '/assets/js/packs.js'
+  import {
+    WORKER_URL, STRIPE_PK, getConfirmPaymentOutcome, validateEmail,
+    getShippingFields, buildShippingAddress, createPaymentAppearance,
+    createPaymentFields, renderSuccessConfirmation, setSubmitButton,
+    createPaymentIntent, showError
+  } from '/assets/js/payment.js'
 
   var packs = [
     {% for pack in site.data.prices.packs %}
@@ -90,20 +125,14 @@ description: "Choose your pack and complete your preorder"
       el.classList.toggle("checkout-pack-card--selected", parseInt(el.dataset.index) === index);
     });
 
-    document.getElementById("submit-btn").textContent = "Pay $" + pack.price.toFixed(2);
+    setSubmitButton(document.getElementById("submit-btn"), pack);
 
     document.getElementById("selSticks").textContent = pack.sticks;
     document.getElementById("selWeight").textContent = pack.weight;
     document.getElementById("selClimb").textContent = pack.climb;
     document.getElementById("selPrice").textContent = "$" + pack.price;
 
-    var sticksEl = document.getElementById("selectedSticks");
-    sticksEl.innerHTML = "";
-    for (var i = 0; i < pack.sticks; i++) {
-      var s = document.createElement("span");
-      s.className = "checkout-stick-icon";
-      sticksEl.appendChild(s);
-    }
+    renderStickIcons(document.getElementById("selectedSticks"), pack.sticks, "checkout-stick-icon");
   }
 
   document.querySelectorAll(".checkout-pack-card").forEach(function(el) {
@@ -125,39 +154,10 @@ description: "Choose your pack and complete your preorder"
 
     try {
       var pack = packs[selectedIndex];
+      var clientSecret = await createPaymentIntent(pack.price, pack.name, emailInput.value);
 
-      var response = await fetch(WORKER_URL + '/api/create-payment-intent', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          amount: pack.price,
-          packName: pack.name,
-          email: emailInput.value || undefined,
-        }),
-      });
-
-      if (!response.ok) {
-        var errData = await response.json();
-        throw new Error(errData.error || 'Failed to create payment');
-      }
-
-      var data = await response.json();
-      var clientSecret = data.clientSecret;
-
-      var appearance = {
-        theme: 'night',
-        variables: {
-          colorPrimary: '#1F3D1B',
-          colorBackground: '#222222',
-          colorText: '#ffffff',
-          colorDanger: '#ff6b6b',
-          fontFamily: 'system-ui, sans-serif',
-          borderRadius: '4px',
-        },
-      };
-
-      var elements = stripe.elements({ clientSecret: clientSecret, appearance: appearance });
-      var paymentElement = elements.create('payment');
+      var elements = stripe.elements({ clientSecret: clientSecret, appearance: createPaymentAppearance() });
+      var paymentElement = elements.create('payment', createPaymentFields());
       paymentElement.mount('#stripe-payment-element');
       resultEl.innerHTML = '';
 
@@ -169,30 +169,63 @@ description: "Choose your pack and complete your preorder"
         var pack = packs[selectedIndex];
         var email = emailInput.value;
 
-        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-          resultEl.innerHTML = '<p style="color:#ff6b6b;margin:0 0 1rem">Please enter a valid email address so we can send your receipt.</p>';
+        if (!email || !validateEmail(email)) {
+          showError(resultEl, 'Please enter a valid email address so we can send your receipt.');
           emailInput.focus();
-          submitBtn.disabled = false;
-          submitBtn.textContent = "Pay $" + pack.price.toFixed(2);
+          setSubmitButton(submitBtn, pack);
           return;
         }
 
-        var confirmResult = await stripe.confirmPayment({
-          elements: elements,
-          confirmParams: {
-            return_url: WORKER_URL + '/confirm',
-            receipt_email: email,
-          },
-        });
+        var fields = getShippingFields();
+        if (!fields.name || !fields.address || !fields.city || !fields.state || !fields.zip) {
+          showError(resultEl, 'Please fill in all required shipping fields.');
+          setSubmitButton(submitBtn, pack);
+          return;
+        }
 
-        if (confirmResult.error) {
-          resultEl.innerHTML = '<p style="color:#ff6b6b;margin:0 0 1rem">' + confirmResult.error.message + '</p>';
-          submitBtn.disabled = false;
-          submitBtn.textContent = "Pay $" + pack.price.toFixed(2);
+        try {
+          var confirmResult = await stripe.confirmPayment({
+            elements: elements,
+            redirect: 'if_required',
+            confirmParams: {
+              return_url: WORKER_URL + '/confirm',
+              receipt_email: email,
+              payment_method_data: {
+                billing_details: {
+                  name: fields.name,
+                  email: email,
+                  phone: '',
+                  address: {
+                    line1: fields.address,
+                    city: fields.city,
+                    state: fields.state,
+                    postal_code: fields.zip,
+                    country: 'US',
+                  },
+                },
+              },
+              shipping: {
+                name: fields.name,
+                address: buildShippingAddress(fields),
+              },
+            },
+          });
+
+          var outcome = getConfirmPaymentOutcome(confirmResult);
+          if (outcome.type === 'error') {
+            showError(resultEl, outcome.message);
+            setSubmitButton(submitBtn, pack);
+          } else if (outcome.type === 'success') {
+            document.getElementById('stripe-payment-element').innerHTML = '';
+            renderSuccessConfirmation(form, email);
+          }
+        } catch (err) {
+          showError(resultEl, err.message);
+          setSubmitButton(submitBtn, pack);
         }
       });
     } catch (err) {
-      resultEl.innerHTML = '<p style="color:#ff6b6b;margin:0 0 1rem">' + err.message + '</p>';
+      showError(resultEl, err.message);
     }
   }
 

@@ -51,7 +51,24 @@ describe('POST /api/create-payment-intent', () => {
     expect(stripeBody).toContain('currency=usd')
     expect(stripeBody).toContain('description=Nimble+Climbing+Sticks+%E2%80%94+4-Pack')
     expect(stripeBody).toContain('receipt_email=test%40example.com')
-    expect(stripeBody).toContain('automatic_payment_methods%5Benabled%5D=true')
+    expect(stripeBody).toContain('payment_method_types%5B%5D=card')
+    expect(stripeBody).not.toContain('automatic_payment_methods')
+  })
+
+  it('uses only card payment method', async () => {
+    let stripeBody = ''
+    globalThis.fetch = vi.fn().mockImplementation(async (url, opts) => {
+      stripeBody = opts.body
+      return { ok: true, json: () => Promise.resolve({ client_secret: 'pi_s' }) }
+    })
+
+    const req = new Request('https://nimble-stripe.example.workers.dev/api/create-payment-intent', {
+      method: 'POST',
+      body: JSON.stringify({ amount: 50 }),
+    })
+    await worker.fetch(req)
+
+    expect(stripeBody).toContain('payment_method_types%5B%5D=card')
   })
 
   it('rounds fractional amounts', async () => {

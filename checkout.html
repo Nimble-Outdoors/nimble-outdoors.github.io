@@ -34,6 +34,36 @@ description: "Complete your preorder for Nimble Climbing Sticks"
             <input type="email" id="email" placeholder="john@example.com" required>
           </div>
 
+          <fieldset class="shipping-fieldset">
+            <legend>Shipping Address</legend>
+            <div class="form-group">
+              <label for="ship-name">Full Name</label>
+              <input type="text" id="ship-name" placeholder="John Doe" required>
+            </div>
+            <div class="form-group">
+              <label for="ship-address">Address Line 1</label>
+              <input type="text" id="ship-address" placeholder="123 Main St" required>
+            </div>
+            <div class="form-group">
+              <label for="ship-address2">Address Line 2 (optional)</label>
+              <input type="text" id="ship-address2" placeholder="Apt, Suite, etc.">
+            </div>
+            <div class="form-row">
+              <div class="form-group form-group-half">
+                <label for="ship-city">City</label>
+                <input type="text" id="ship-city" placeholder="City" required>
+              </div>
+              <div class="form-group form-group-quarter">
+                <label for="ship-state">State</label>
+                <input type="text" id="ship-state" placeholder="WI" required>
+              </div>
+              <div class="form-group form-group-quarter">
+                <label for="ship-zip">ZIP Code</label>
+                <input type="text" id="ship-zip" placeholder="54701" required>
+              </div>
+            </div>
+          </fieldset>
+
           <div id="stripe-payment-element" style="margin-bottom:24px">
           </div>
 
@@ -47,40 +77,24 @@ description: "Complete your preorder for Nimble Climbing Sticks"
 </section>
 
 <script src="https://js.stripe.com/v3/"></script>
-<script>
-  var WORKER_URL = 'https://nimble-stripe.YOUR_USERNAME.workers.dev';
-  var STRIPE_PK = 'pk_live_51TmefYPQzgCkAZkTnvdVyDKW9EfnkC2NPfPwwC0wNywNIG3uGmUlCcbDDH60LzqSsSDqH6Fi28I1hn3xNvQD3aCQ00jVy3AgG9';
-
-  var packs = [
-    { name: "3-Pack", price: 199, weight: "2 lb 7 oz", sticks: 3, climb: "~12 ft", desc: "Lightest setup. Perfect for run-and-gun hunts." },
-    { name: "4-Pack", price: 249, weight: "3 lb 4 oz", sticks: 4, climb: "~16 ft", desc: "The sweet spot. Enough height for most setups." },
-    { name: "5-Pack", price: 299, weight: "4 lb 1 oz", sticks: 5, climb: "~20 ft", desc: "Maximum reach. For hunters who want every option." }
-  ];
+<script type="module">
+  import { PACKS, getSpecsHtml, renderStickIcons } from '/assets/js/packs.js'
+  import {
+    WORKER_URL, STRIPE_PK, getConfirmPaymentOutcome, validateEmail,
+    getShippingFields, buildShippingAddress, createPaymentAppearance,
+    createPaymentFields, renderSuccessConfirmation, setSubmitButton,
+    createPaymentIntent, showError
+  } from '/assets/js/payment.js'
 
   var params = new URLSearchParams(window.location.search);
   var packIndex = parseInt(params.get("pack")) || 2;
   if (packIndex < 1 || packIndex > 3) packIndex = 2;
-  var pack = packs[packIndex - 1];
+  var pack = PACKS[packIndex - 1];
 
-  var sticksEl = document.getElementById("cartSticks");
-  for (var i = 0; i < pack.sticks; i++) {
-    var s = document.createElement("span");
-    s.className = "checkout-stick-icon";
-    sticksEl.appendChild(s);
-  }
-
+  renderStickIcons(document.getElementById("cartSticks"), pack.sticks, "checkout-stick-icon");
   document.getElementById("cartName").textContent = "Nimble Climbing Sticks \u2014 " + pack.name;
   document.getElementById("cartPrice").textContent = "$" + pack.price.toFixed(2);
-
-  var specsHtml =
-    "<li><strong>" + pack.sticks + "</strong> carbon fiber sticks</li>" +
-    "<li><strong>" + pack.weight + "</strong> total weight</li>" +
-    "<li><strong>" + pack.climb + "</strong> climb height</li>" +
-    "<li>Daisy chain rope attachment</li>" +
-    "<li>Made in Osseo, Wisconsin</li>";
-  document.getElementById("cartSpecs").innerHTML = specsHtml;
-
-  document.getElementById("submit-btn").textContent = "Pay $" + pack.price.toFixed(2);
+  document.getElementById("cartSpecs").innerHTML = getSpecsHtml(pack);
 
   var stripe = Stripe(STRIPE_PK);
   var form = document.getElementById("helcimForm");
@@ -88,42 +102,16 @@ description: "Complete your preorder for Nimble Climbing Sticks"
   var resultEl = document.getElementById("helcimResults");
   var emailInput = document.getElementById("email");
 
+  setSubmitButton(submitBtn, pack);
+
   async function initializeCheckout() {
     resultEl.innerHTML = '<p style="color:#ccc">Setting up payment form…</p>';
 
     try {
-      var response = await fetch(WORKER_URL + '/api/create-payment-intent', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          amount: pack.price,
-          packName: pack.name,
-          email: emailInput.value || undefined,
-        }),
-      });
+      var clientSecret = await createPaymentIntent(pack.price, pack.name, emailInput.value);
 
-      if (!response.ok) {
-        var errData = await response.json();
-        throw new Error(errData.error || 'Failed to create payment');
-      }
-
-      var data = await response.json();
-      var clientSecret = data.clientSecret;
-
-      var appearance = {
-        theme: 'night',
-        variables: {
-          colorPrimary: '#1F3D1B',
-          colorBackground: '#222222',
-          colorText: '#ffffff',
-          colorDanger: '#ff6b6b',
-          fontFamily: 'system-ui, sans-serif',
-          borderRadius: '4px',
-        },
-      };
-
-      var elements = stripe.elements({ clientSecret: clientSecret, appearance: appearance });
-      var paymentElement = elements.create('payment');
+      var elements = stripe.elements({ clientSecret: clientSecret, appearance: createPaymentAppearance() });
+      var paymentElement = elements.create('payment', createPaymentFields());
       paymentElement.mount('#stripe-payment-element');
       resultEl.innerHTML = '';
 
@@ -133,30 +121,63 @@ description: "Complete your preorder for Nimble Climbing Sticks"
         submitBtn.textContent = 'Processing…';
 
         var email = emailInput.value;
-        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-          resultEl.innerHTML = '<p style="color:#ff6b6b;margin:0 0 1rem">Please enter a valid email address so we can send your receipt.</p>';
+        if (!email || !validateEmail(email)) {
+          showError(resultEl, 'Please enter a valid email address so we can send your receipt.');
           emailInput.focus();
-          submitBtn.disabled = false;
-          submitBtn.textContent = "Pay $" + pack.price.toFixed(2);
+          setSubmitButton(submitBtn, pack);
           return;
         }
 
-        var confirmResult = await stripe.confirmPayment({
-          elements: elements,
-          confirmParams: {
-            return_url: WORKER_URL + '/confirm',
-            receipt_email: email,
-          },
-        });
+        var fields = getShippingFields();
+        if (!fields.name || !fields.address || !fields.city || !fields.state || !fields.zip) {
+          showError(resultEl, 'Please fill in all required shipping fields.');
+          setSubmitButton(submitBtn, pack);
+          return;
+        }
 
-        if (confirmResult.error) {
-          resultEl.innerHTML = '<p style="color:#ff6b6b;margin:0 0 1rem">' + confirmResult.error.message + '</p>';
-          submitBtn.disabled = false;
-          submitBtn.textContent = "Pay $" + pack.price.toFixed(2);
+        try {
+          var confirmResult = await stripe.confirmPayment({
+            elements: elements,
+            redirect: 'if_required',
+            confirmParams: {
+              return_url: WORKER_URL + '/confirm',
+              receipt_email: email,
+              payment_method_data: {
+                billing_details: {
+                  name: fields.name,
+                  email: email,
+                  phone: '',
+                  address: {
+                    line1: fields.address,
+                    city: fields.city,
+                    state: fields.state,
+                    postal_code: fields.zip,
+                    country: 'US',
+                  },
+                },
+              },
+              shipping: {
+                name: fields.name,
+                address: buildShippingAddress(fields),
+              },
+            },
+          });
+
+          var outcome = getConfirmPaymentOutcome(confirmResult);
+          if (outcome.type === 'error') {
+            showError(resultEl, outcome.message);
+            setSubmitButton(submitBtn, pack);
+          } else if (outcome.type === 'success') {
+            document.getElementById('stripe-payment-element').innerHTML = '';
+            renderSuccessConfirmation(form, email);
+          }
+        } catch (err) {
+          showError(resultEl, err.message);
+          setSubmitButton(submitBtn, pack);
         }
       });
     } catch (err) {
-      resultEl.innerHTML = '<p style="color:#ff6b6b;margin:0 0 1rem">' + err.message + '</p>';
+      showError(resultEl, err.message);
     }
   }
 

@@ -3,21 +3,7 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-
-/**
- * getFormspreeStatus — pure function extracted from the signup form's
- * inline script. Returns the status message string for a given response/data pair.
- *   response.ok === true  → null (success, no message needed)
- *   data has "errors"     → joined error messages
- *   otherwise             → fallback text
- */
-function getFormspreeStatus(response, data) {
-  if (response.ok) return null
-  if (Object.hasOwn(data, 'errors')) {
-    return data.errors.map(error => error["message"]).join(", ")
-  }
-  return "Oops! Something went wrong. Try just emailing joey@nimbleoutdoorsllc.com"
-}
+import { getFormspreeStatus } from '../assets/js/signup.js'
 
 describe('getFormspreeStatus', () => {
   it('returns null for successful response', () => {
