@@ -76,19 +76,48 @@ export default {
       return new Response(null, { headers: corsHeaders });
     }
 
+    // List active prices from Stripe catalog
+    if (request.method === 'GET' && url.pathname === '/api/prices') {
+      try {
+        const secret = env.STRIPE_SECRET_KEY || globalThis.STRIPE_SECRET_KEY;
+        const data = await stripeApi('/prices?active=true&expand[]=data.product&limit=10', secret);
+
+        const packs = data.data
+          .filter(p => p.product?.active !== false)
+          .map(p => ({
+            name: p.product.name,
+            sku: p.product.metadata?.sku || '',
+            price: (p.unit_amount || 0) / 100,
+            stripePriceId: p.id,
+          }))
+          .sort((a, b) => a.price - b.price);
+
+        return new Response(JSON.stringify(packs), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      } catch (err) {
+        return new Response(JSON.stringify({ error: err.message }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+    }
+
     // Create PaymentIntent
     if (request.method === 'POST' && url.pathname === '/api/create-payment-intent') {
       try {
-        const { amount, packName, email } = await request.json();
+        const { priceId, packName, email } = await request.json();
 
-        if (!amount || amount <= 0) {
-          return new Response(JSON.stringify({ error: 'Invalid amount' }), {
+        if (!priceId) {
+          return new Response(JSON.stringify({ error: 'Invalid price' }), {
             status: 400,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           });
         }
 
-        const cents = Math.round(amount * 100);
+        const secret = env.STRIPE_SECRET_KEY || globalThis.STRIPE_SECRET_KEY;
+        const stripePrice = await stripeApi('/prices/' + priceId, secret);
+        const cents = stripePrice.unit_amount;
         const description = packName ? 'Nimble Climbing Sticks — ' + packName : 'Nimble Climbing Sticks';
 
         const body = new URLSearchParams({
@@ -102,7 +131,7 @@ export default {
           body.set('receipt_email', email);
         }
 
-        const pi = await stripeApi('/payment_intents', env.STRIPE_SECRET_KEY || globalThis.STRIPE_SECRET_KEY, {
+        const pi = await stripeApi('/payment_intents', secret, {
           method: 'POST',
           body: body.toString(),
         });

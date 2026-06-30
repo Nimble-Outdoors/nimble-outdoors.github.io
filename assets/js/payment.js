@@ -90,11 +90,11 @@ export function setSubmitButton(submitBtn, pack) {
   submitBtn.disabled = false
 }
 
-export async function createPaymentIntent(amount, packName, email) {
+export async function createPaymentIntent(priceId, packName, email) {
   const response = await fetch(`${WORKER_URL}/api/create-payment-intent`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ amount, packName, email: email || undefined }),
+    body: JSON.stringify({ priceId, packName, email: email || undefined }),
   })
   if (!response.ok) {
     const errData = await response.json()

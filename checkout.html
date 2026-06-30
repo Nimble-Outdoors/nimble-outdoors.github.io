@@ -78,7 +78,7 @@ description: "Complete your preorder for Nimble Climbing Sticks"
 
 <script src="https://js.stripe.com/v3/"></script>
 <script type="module">
-  import { PACKS, getSpecsHtml, renderStickIcons } from '/assets/js/packs.js'
+  import { fetchPacks, getSpecsHtml, renderStickIcons } from '/assets/js/packs.js'
   import {
     WORKER_URL, STRIPE_PK, getConfirmPaymentOutcome, validateEmail,
     getShippingFields, buildShippingAddress, createPaymentAppearance,
@@ -86,29 +86,40 @@ description: "Complete your preorder for Nimble Climbing Sticks"
     createPaymentIntent, showError
   } from '/assets/js/payment.js'
 
-  var params = new URLSearchParams(window.location.search);
-  var packIndex = parseInt(params.get("pack")) || 2;
-  if (packIndex < 1 || packIndex > 3) packIndex = 2;
-  var pack = PACKS[packIndex - 1];
+  async function init() {
+    var resultEl = document.getElementById("helcimResults");
+    var submitBtn = document.getElementById("submit-btn");
+    var form = document.getElementById("helcimForm");
 
-  renderStickIcons(document.getElementById("cartSticks"), pack.sticks, "checkout-stick-icon");
-  document.getElementById("cartName").textContent = "Nimble Climbing Sticks \u2014 " + pack.name;
-  document.getElementById("cartPrice").textContent = "$" + pack.price.toFixed(2);
-  document.getElementById("cartSpecs").innerHTML = getSpecsHtml(pack);
+    resultEl.innerHTML = '<p style="color:#ccc">Loading pricing…</p>';
+    submitBtn.disabled = true;
 
-  var stripe = Stripe(STRIPE_PK);
-  var form = document.getElementById("helcimForm");
-  var submitBtn = document.getElementById("submit-btn");
-  var resultEl = document.getElementById("helcimResults");
-  var emailInput = document.getElementById("email");
+    try {
+      var packs = await fetchPacks();
+    } catch (err) {
+      showError(resultEl, 'Pricing currently unavailable. Please try again later.');
+      return;
+    }
 
-  setSubmitButton(submitBtn, pack);
+    var params = new URLSearchParams(window.location.search);
+    var packIndex = parseInt(params.get("pack")) || 2;
+    if (packIndex < 1 || packIndex > packs.length) packIndex = 2;
+    var pack = packs[packIndex - 1];
 
-  async function initializeCheckout() {
+    renderStickIcons(document.getElementById("cartSticks"), pack.sticks, "checkout-stick-icon");
+    document.getElementById("cartName").textContent = "Nimble Climbing Sticks \u2014 " + pack.name;
+    document.getElementById("cartPrice").textContent = "$" + pack.price.toFixed(2);
+    document.getElementById("cartSpecs").innerHTML = getSpecsHtml(pack);
+
+    var stripe = Stripe(STRIPE_PK);
+    var emailInput = document.getElementById("email");
+
+    setSubmitButton(submitBtn, pack);
+
     resultEl.innerHTML = '<p style="color:#ccc">Setting up payment form…</p>';
 
     try {
-      var clientSecret = await createPaymentIntent(pack.price, pack.name, emailInput.value);
+      var clientSecret = await createPaymentIntent(pack.stripePriceId, pack.name, emailInput.value);
 
       var elements = stripe.elements({ clientSecret: clientSecret, appearance: createPaymentAppearance() });
       var paymentElement = elements.create('payment', createPaymentFields());
@@ -181,5 +192,5 @@ description: "Complete your preorder for Nimble Climbing Sticks"
     }
   }
 
-  initializeCheckout();
+  init();
 </script>

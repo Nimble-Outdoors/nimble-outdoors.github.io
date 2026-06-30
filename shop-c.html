@@ -150,14 +150,15 @@ description: "Ultra lightweight carbon fiber climbing sticks. Choose your pack."
 </section>
 
 <script type="module">
-  import { PACKS, renderStickIcons } from '/assets/js/packs.js'
+  import { fetchPacks, renderStickIcons } from '/assets/js/packs.js'
 
+  var packs = [];
   var selected = 0;
   var displaySticks = document.getElementById("displaySticks");
 
   function selectPack(index) {
     selected = index;
-    var pack = PACKS[index];
+    var pack = packs[index];
 
     document.querySelectorAll(".shop-c-toggle").forEach(function(el) {
       el.classList.toggle("active", parseInt(el.dataset.index) === index);
@@ -181,5 +182,19 @@ description: "Ultra lightweight carbon fiber climbing sticks. Choose your pack."
     });
   });
 
-  selectPack(1);
+  fetchPacks().then(function(result) {
+    packs = result;
+    document.querySelectorAll(".shop-c-toggle--sm").forEach(function(el, i) {
+      if (packs[i]) el.textContent = packs[i].name + ' — $' + packs[i].price;
+    });
+    selectPack(1);
+  }).catch(function() {
+    document.getElementById("packPrice").textContent = 'Unavailable';
+    document.getElementById("ctaPrice").textContent = 'Unavailable';
+    document.querySelectorAll(".shop-c-toggle--sm").forEach(function(el) {
+      el.textContent = 'Unavailable';
+    });
+    document.getElementById("preorderLink1").removeAttribute("href");
+    document.getElementById("preorderLink2").removeAttribute("href");
+  });
 </script>

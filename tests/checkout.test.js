@@ -9,6 +9,7 @@ import {
   createPaymentFieldsDefault, renderSuccessConfirmation, setSubmitButton,
   createPaymentIntent, showError
 } from '../assets/js/payment.js'
+import { fetchPacks, PACK_DETAILS, resetPacksCache } from '../assets/js/packs.js'
 
 describe('getConfirmPaymentOutcome', () => {
   it('returns error when confirmResult has an error', () => {
@@ -238,6 +239,49 @@ describe('setSubmitButton', () => {
   })
 })
 
+describe('PACK_DETAILS', () => {
+  it('has three packs with static specs and skus', () => {
+    expect(PACK_DETAILS).toHaveLength(3)
+    expect(PACK_DETAILS[0].sku).toBe('pack-3')
+    expect(PACK_DETAILS[0].name).toBe('3-Pack')
+    expect(PACK_DETAILS[0].sticks).toBe(3)
+    expect(PACK_DETAILS[0].weight).toBe('2 lb 7 oz')
+    expect(PACK_DETAILS[0].climb).toBe('~12 ft')
+  })
+})
+
+describe('fetchPacks', () => {
+  beforeEach(() => {
+    resetPacksCache()
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  it('merges fetched prices into static details', async () => {
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve([
+        { name: '3-Pack', sku: 'pack-3', price: 199, stripePriceId: 'price_3' },
+        { name: '4-Pack', sku: 'pack-4', price: 249, stripePriceId: 'price_4' },
+        { name: '5-Pack', sku: 'pack-5', price: 299, stripePriceId: 'price_5' },
+      ]),
+    })
+    const packs = await fetchPacks()
+    expect(packs).toHaveLength(3)
+    expect(packs[0].price).toBe(199)
+    expect(packs[0].stripePriceId).toBe('price_3')
+    expect(packs[0].sticks).toBe(3)
+    expect(packs[0].name).toBe('3-Pack')
+  })
+
+  it('throws when fetch fails', async () => {
+    globalThis.fetch = vi.fn().mockRejectedValue(new Error('Network failure'))
+    await expect(fetchPacks()).rejects.toThrow('Network failure')
+  })
+})
+
 describe('createPaymentIntent', () => {
   afterEach(() => {
     vi.restoreAllMocks()
@@ -248,18 +292,18 @@ describe('createPaymentIntent', () => {
       ok: true,
       json: () => Promise.resolve({ clientSecret: 'pi_123_secret_abc' }),
     })
-    const result = await createPaymentIntent(249.00, '4-Pack', 'test@example.com')
+    const result = await createPaymentIntent('price_4pack', '4-Pack', 'test@example.com')
     expect(result).toBe('pi_123_secret_abc')
   })
 
-  it('sends amount, packName, and email in request body', async () => {
+  it('sends priceId, packName, and email in request body', async () => {
     let body = null
     globalThis.fetch = vi.fn().mockImplementation(async (url, opts) => {
       body = JSON.parse(opts.body)
       return { ok: true, json: () => Promise.resolve({ clientSecret: 'pi_s' }) }
     })
-    await createPaymentIntent(199.99, '3-Pack', 'a@b.com')
-    expect(body.amount).toBe(199.99)
+    await createPaymentIntent('price_3pack', '3-Pack', 'a@b.com')
+    expect(body.priceId).toBe('price_3pack')
     expect(body.packName).toBe('3-Pack')
     expect(body.email).toBe('a@b.com')
   })
@@ -267,14 +311,14 @@ describe('createPaymentIntent', () => {
   it('throws on non-ok response', async () => {
     globalThis.fetch = vi.fn().mockResolvedValue({
       ok: false,
-      json: () => Promise.resolve({ error: 'Invalid amount' }),
+      json: () => Promise.resolve({ error: 'Invalid price' }),
     })
-    await expect(createPaymentIntent(0, 'test')).rejects.toThrow('Invalid amount')
+    await expect(createPaymentIntent('', 'test')).rejects.toThrow('Invalid price')
   })
 
   it('throws on network failure', async () => {
     globalThis.fetch = vi.fn().mockRejectedValue(new Error('Network failure'))
-    await expect(createPaymentIntent(50, 'test')).rejects.toThrow('Network failure')
+    await expect(createPaymentIntent('price_x', 'test')).rejects.toThrow('Network failure')
   })
 })
 
