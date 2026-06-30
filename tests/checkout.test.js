@@ -2,8 +2,13 @@
  * @vitest-environment jsdom
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { getConfirmPaymentOutcome, validateEmail, getShippingFields, buildShippingAddress, createPaymentAppearance, createPaymentFields } from '../assets/js/payment.js'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import {
+  getConfirmPaymentOutcome, validateEmail, getShippingFields,
+  buildShippingAddress, createPaymentAppearance, createPaymentFields,
+  createPaymentFieldsDefault, renderSuccessConfirmation, setSubmitButton,
+  createPaymentIntent, showError
+} from '../assets/js/payment.js'
 
 describe('getConfirmPaymentOutcome', () => {
   it('returns error when confirmResult has an error', () => {
@@ -38,77 +43,257 @@ describe('getConfirmPaymentOutcome', () => {
     const result = getConfirmPaymentOutcome({})
     expect(result).toEqual({ type: 'requires_action' })
   })
+})
 
-  it('returns requires_action when confirmResult is empty', () => {
-    const result = getConfirmPaymentOutcome({})
-    expect(result).toEqual({ type: 'requires_action' })
+describe('validateEmail', () => {
+  it('returns true for valid email', () => {
+    expect(validateEmail('test@example.com')).toBe(true)
+  })
+
+  it('returns true for email with subdomain', () => {
+    expect(validateEmail('user@sub.example.co.uk')).toBe(true)
+  })
+
+  it('returns false for missing @', () => {
+    expect(validateEmail('notanemail')).toBe(false)
+  })
+
+  it('returns false for empty string', () => {
+    expect(validateEmail('')).toBe(false)
+  })
+
+  it('returns false for only domain', () => {
+    expect(validateEmail('@example.com')).toBe(false)
+  })
+
+  it('returns false for missing domain', () => {
+    expect(validateEmail('user@')).toBe(false)
   })
 })
 
-describe('payment element fields config', () => {
-  it('hides email and phone from PaymentElement billing details', () => {
-    var fields = {
-      billingDetails: {
-        name: 'never',
-        email: 'never',
-        phone: 'never',
-        address: 'never',
-      },
-    }
-    expect(fields.billingDetails.email).toBe('never')
-    expect(fields.billingDetails.phone).toBe('never')
+describe('getShippingFields', () => {
+  beforeEach(() => {
+    document.body.innerHTML = `
+      <input type="text" id="ship-name" value="John Doe" />
+      <input type="text" id="ship-address" value="123 Main St" />
+      <input type="text" id="ship-address2" value="Apt 4" />
+      <input type="text" id="ship-city" value="Eau Claire" />
+      <input type="text" id="ship-state" value="WI" />
+      <input type="text" id="ship-zip" value="54701" />
+    `
   })
 
-  it('disables wallets and link save-card prompt', () => {
-    var wallets = {
+  it('returns shipping fields from DOM', () => {
+    const fields = getShippingFields()
+    expect(fields).toEqual({
+      name: 'John Doe',
+      address: '123 Main St',
+      address2: 'Apt 4',
+      city: 'Eau Claire',
+      state: 'WI',
+      zip: '54701',
+    })
+  })
+
+  it('returns empty strings when fields are empty', () => {
+    document.getElementById('ship-name').value = ''
+    document.getElementById('ship-address').value = ''
+    document.getElementById('ship-city').value = ''
+    document.getElementById('ship-state').value = ''
+    document.getElementById('ship-zip').value = ''
+    const fields = getShippingFields()
+    expect(fields.name).toBe('')
+    expect(fields.address).toBe('')
+    expect(fields.city).toBe('')
+    expect(fields.state).toBe('')
+    expect(fields.zip).toBe('')
+  })
+})
+
+describe('buildShippingAddress', () => {
+  it('returns address object with line2 when address2 present', () => {
+    const result = buildShippingAddress({
+      name: 'John Doe',
+      address: '123 Main St',
+      address2: 'Apt 4',
+      city: 'Eau Claire',
+      state: 'WI',
+      zip: '54701',
+    })
+    expect(result).toEqual({
+      line1: '123 Main St',
+      line2: 'Apt 4',
+      city: 'Eau Claire',
+      state: 'WI',
+      postal_code: '54701',
+      country: 'US',
+    })
+  })
+
+  it('omits line2 when address2 is empty', () => {
+    const result = buildShippingAddress({
+      name: 'Jane Doe',
+      address: '456 Oak Ave',
+      address2: '',
+      city: 'Osseo',
+      state: 'WI',
+      zip: '54758',
+    })
+    expect(result.line1).toBe('456 Oak Ave')
+    expect(result.line2).toBeUndefined()
+    expect(result.city).toBe('Osseo')
+    expect(result.state).toBe('WI')
+    expect(result.country).toBe('US')
+  })
+
+  it('omits line2 when address2 is null/undefined', () => {
+    const result = buildShippingAddress({
+      name: 'Jane Doe',
+      address: '456 Oak Ave',
+      address2: undefined,
+      city: 'Osseo',
+      state: 'WI',
+      zip: '54758',
+    })
+    expect(result.line2).toBeUndefined()
+  })
+})
+
+describe('createPaymentAppearance', () => {
+  it('returns Stripe appearance config with dark theme', () => {
+    const result = createPaymentAppearance()
+    expect(result).toEqual({
+      theme: 'night',
+      variables: {
+        colorPrimary: '#1F3D1B',
+        colorBackground: '#222222',
+        colorText: '#ffffff',
+        colorDanger: '#ff6b6b',
+        fontFamily: 'system-ui, sans-serif',
+        borderRadius: '4px',
+      },
+    })
+  })
+})
+
+describe('createPaymentFields', () => {
+  it('returns fields config hiding all billing details', () => {
+    const result = createPaymentFields()
+    expect(result.fields.billingDetails).toEqual({
+      name: 'never',
+      email: 'never',
+      phone: 'never',
+      address: 'never',
+    })
+  })
+
+  it('disables wallets and link', () => {
+    const result = createPaymentFields()
+    expect(result.wallets).toEqual({
       applePay: 'never',
       googlePay: 'never',
       link: 'never',
-    }
-    expect(wallets.applePay).toBe('never')
-    expect(wallets.googlePay).toBe('never')
-    expect(wallets.link).toBe('never')
+    })
   })
 })
 
-describe('getShippingAddress', () => {
-  it('returns shipping object from form fields', () => {
-    var shipping = {
-      name: 'John Doe',
-      address: {
-        line1: '123 Main St',
-        line2: 'Apt 4',
-        city: 'Eau Claire',
-        state: 'WI',
-        postal_code: '54701',
-        country: 'US',
-      },
-    }
-    expect(shipping.name).toBe('John Doe')
-    expect(shipping.address.city).toBe('Eau Claire')
-    expect(shipping.address.state).toBe('WI')
-    expect(shipping.address.country).toBe('US')
+describe('createPaymentFieldsDefault', () => {
+  it('returns empty object (Stripe defaults)', () => {
+    const result = createPaymentFieldsDefault()
+    expect(result).toEqual({})
+  })
+})
+
+describe('renderSuccessConfirmation', () => {
+  beforeEach(() => {
+    document.body.innerHTML = '<form id="testForm"></form>'
   })
 
-  it('includes only required fields when line2 is empty', () => {
-    var shipping = {
-      name: 'Jane Doe',
-      address: {
-        line1: '456 Oak Ave',
-        city: 'Osseo',
-        state: 'WI',
-        postal_code: '54758',
-        country: 'US',
-      },
-    }
-    expect(shipping.name).toBe('Jane Doe')
-    expect(shipping.address.line1).toBe('456 Oak Ave')
-    expect(shipping.address.line2).toBeUndefined()
-    expect(shipping.address.city).toBe('Osseo')
+  it('renders success HTML with checked email', () => {
+    const form = document.getElementById('testForm')
+    renderSuccessConfirmation(form, 'john@example.com')
+    expect(form.innerHTML).toContain('Payment Confirmed')
+    expect(form.innerHTML).toContain('john@example.com')
+    expect(form.innerHTML).toContain('\u2713')
+    expect(form.innerHTML).toContain('#1F3D1B')
+    expect(form.innerHTML).not.toContain('#8B0000')
+  })
+})
+
+describe('setSubmitButton', () => {
+  it('sets button text from pack price and enables it', () => {
+    document.body.innerHTML = '<button id="btn">Pay $0.00</button>'
+    const btn = document.getElementById('btn')
+    btn.disabled = true
+    setSubmitButton(btn, { price: 299.99 })
+    expect(btn.textContent).toBe('Pay $299.99')
+    expect(btn.disabled).toBe(false)
+  })
+
+  it('formats price with two decimals', () => {
+    document.body.innerHTML = '<button id="btn2"></button>'
+    const btn = document.getElementById('btn2')
+    setSubmitButton(btn, { price: 50 })
+    expect(btn.textContent).toBe('Pay $50.00')
+  })
+})
+
+describe('createPaymentIntent', () => {
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  it('returns clientSecret on success', async () => {
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ clientSecret: 'pi_123_secret_abc' }),
+    })
+    const result = await createPaymentIntent(249.00, '4-Pack', 'test@example.com')
+    expect(result).toBe('pi_123_secret_abc')
+  })
+
+  it('sends amount, packName, and email in request body', async () => {
+    let body = null
+    globalThis.fetch = vi.fn().mockImplementation(async (url, opts) => {
+      body = JSON.parse(opts.body)
+      return { ok: true, json: () => Promise.resolve({ clientSecret: 'pi_s' }) }
+    })
+    await createPaymentIntent(199.99, '3-Pack', 'a@b.com')
+    expect(body.amount).toBe(199.99)
+    expect(body.packName).toBe('3-Pack')
+    expect(body.email).toBe('a@b.com')
+  })
+
+  it('throws on non-ok response', async () => {
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: false,
+      json: () => Promise.resolve({ error: 'Invalid amount' }),
+    })
+    await expect(createPaymentIntent(0, 'test')).rejects.toThrow('Invalid amount')
+  })
+
+  it('throws on network failure', async () => {
+    globalThis.fetch = vi.fn().mockRejectedValue(new Error('Network failure'))
+    await expect(createPaymentIntent(50, 'test')).rejects.toThrow('Network failure')
+  })
+})
+
+describe('showError', () => {
+  beforeEach(() => {
+    document.body.innerHTML = '<div id="result"></div>'
+  })
+
+  it('injects error message into element', () => {
+    const el = document.getElementById('result')
+    showError(el, 'Something went wrong')
+    expect(el.innerHTML).toContain('Something went wrong')
+    expect(el.innerHTML).toContain('#ff6b6b')
   })
 })
 
 describe('checkout confirmPayment integration (jsdom)', () => {
+  const PACK = { price: 249.00 }
+
   beforeEach(() => {
     document.body.innerHTML = `
       <form id="checkoutForm">
@@ -128,65 +313,9 @@ describe('checkout confirmPayment integration (jsdom)', () => {
     `
   })
 
-  it('creates PaymentElement with billing details fields hidden', async () => {
-    var createCalledWith = null
-    globalThis.Stripe = function () {
-      return {
-        elements: function () {
-          return {
-            create: function (type, opts) {
-              createCalledWith = opts
-              return { mount: vi.fn() }
-            },
-          }
-        },
-        confirmPayment: vi.fn(),
-      }
-    }
-
-    var stripe = Stripe('pk_test_fake')
-    var elements = stripe.elements({ clientSecret: 'pi_123_secret_abc' })
-    var paymentElement = elements.create('payment', {
-      fields: {
-        billingDetails: {
-          name: 'never',
-          email: 'never',
-          phone: 'never',
-          address: 'never',
-        },
-      },
-      wallets: {
-        applePay: 'never',
-        googlePay: 'never',
-        link: 'never',
-      },
-    })
-    paymentElement.mount('#stripe-payment-element')
-
-    expect(createCalledWith).toEqual({
-      fields: {
-        billingDetails: {
-          name: 'never',
-          email: 'never',
-          phone: 'never',
-          address: 'never',
-        },
-      },
-      wallets: {
-        applePay: 'never',
-        googlePay: 'never',
-        link: 'never',
-      },
-    })
-  })
-
   it('shows success message and replaces form when payment succeeds', async () => {
-    var confirmCall = null
     globalThis.stripe = {
-      confirmPayment: vi.fn().mockImplementation(function (opts) {
-        confirmCall = opts
-        return Promise.resolve({ paymentIntent: { status: 'succeeded' } })
-      }),
+      confirmPayment: vi.fn().mockResolvedValue({ paymentIntent: { status: 'succeeded' } }),
     }
 
     const form = document.getElementById('checkoutForm')
@@ -209,56 +338,31 @@ describe('checkout confirmPayment integration (jsdom)', () => {
                 name: fields.name,
                 email: document.getElementById('email').value,
                 phone: '',
-                address: {
-                  line1: fields.address,
-                  city: fields.city,
-                  state: fields.state,
-                  postal_code: fields.zip,
-                  country: 'US',
-                },
+                address: { line1: fields.address, city: fields.city, state: fields.state, postal_code: fields.zip, country: 'US' },
               },
             },
-            shipping: {
-              name: fields.name,
-              address: buildShippingAddress(fields),
-            },
+            shipping: { name: fields.name, address: buildShippingAddress(fields) },
           },
         })
 
         var outcome = getConfirmPaymentOutcome(confirmResult)
-
         if (outcome.type === 'error') {
-          resultEl.innerHTML = '<p style="color:#ff6b6b">' + outcome.message + '</p>'
-          submitBtn.disabled = false
-          submitBtn.textContent = 'Pay $249.00'
+          showError(resultEl, outcome.message)
+          setSubmitButton(submitBtn, PACK)
         } else if (outcome.type === 'success') {
           document.getElementById('stripe-payment-element').innerHTML = ''
-          form.innerHTML =
-            '<div class="card" style="background:#222;padding:2rem;border-radius:8px;border:4px solid #1F3D1B;text-align:center">' +
-              '<div style="font-size:3rem;margin-bottom:0.5rem">&#10003;</div>' +
-              '<h3 style="margin:0 0 0.5rem">Payment Confirmed</h3>' +
-              '<p style="color:#ccc;margin:0">Your preorder has been placed. You\'ll receive a receipt at test@example.com.</p>' +
-            '</div>'
+          renderSuccessConfirmation(form, document.getElementById('email').value)
         }
       } catch (err) {
-        resultEl.innerHTML = '<p style="color:#ff6b6b;margin:0 0 1rem">' + err.message + '</p>'
-        submitBtn.disabled = false
-        submitBtn.textContent = 'Pay $249.00'
+        showError(resultEl, err.message)
+        setSubmitButton(submitBtn, PACK)
       }
     }
 
-    const event = new Event('submit', { cancelable: true })
     form.addEventListener('submit', handleSubmit)
-    form.dispatchEvent(event)
+    form.dispatchEvent(new Event('submit', { cancelable: true }))
 
     await vi.waitFor(() => {
-      expect(confirmCall.confirmParams.shipping.name).toBe('John Doe')
-      expect(confirmCall.confirmParams.shipping.address.line1).toBe('123 Main St')
-      expect(confirmCall.confirmParams.shipping.address.line2).toBe('Apt 4')
-      expect(confirmCall.confirmParams.shipping.address.city).toBe('Eau Claire')
-      expect(confirmCall.confirmParams.shipping.address.state).toBe('WI')
-      expect(confirmCall.confirmParams.shipping.address.postal_code).toBe('54701')
-      expect(confirmCall.confirmParams.shipping.address.country).toBe('US')
       expect(document.getElementById('stripe-payment-element')).toBeNull()
       expect(form.innerHTML).toContain('Payment Confirmed')
       expect(form.innerHTML).toContain('test@example.com')
@@ -268,9 +372,7 @@ describe('checkout confirmPayment integration (jsdom)', () => {
 
   it('shows error and re-enables button when payment fails', async () => {
     globalThis.stripe = {
-      confirmPayment: vi.fn().mockResolvedValue({
-        error: { message: 'Your card was declined.' },
-      }),
+      confirmPayment: vi.fn().mockResolvedValue({ error: { message: 'Your card was declined.' } }),
     }
 
     const form = document.getElementById('checkoutForm')
@@ -293,47 +395,29 @@ describe('checkout confirmPayment integration (jsdom)', () => {
                 name: fields.name,
                 email: document.getElementById('email').value,
                 phone: '',
-                address: {
-                  line1: fields.address,
-                  city: fields.city,
-                  state: fields.state,
-                  postal_code: fields.zip,
-                  country: 'US',
-                },
+                address: { line1: fields.address, city: fields.city, state: fields.state, postal_code: fields.zip, country: 'US' },
               },
             },
-            shipping: {
-              name: fields.name,
-              address: buildShippingAddress(fields),
-            },
+            shipping: { name: fields.name, address: buildShippingAddress(fields) },
           },
         })
 
         var outcome = getConfirmPaymentOutcome(confirmResult)
-
         if (outcome.type === 'error') {
-          resultEl.innerHTML = '<p style="color:#ff6b6b">' + outcome.message + '</p>'
-          submitBtn.disabled = false
-          submitBtn.textContent = 'Pay $249.00'
+          showError(resultEl, outcome.message)
+          setSubmitButton(submitBtn, PACK)
         } else if (outcome.type === 'success') {
           document.getElementById('stripe-payment-element').innerHTML = ''
-          form.innerHTML =
-            '<div class="card" style="background:#222;padding:2rem;border-radius:8px;border:4px solid #1F3D1B;text-align:center">' +
-              '<div style="font-size:3rem;margin-bottom:0.5rem">&#10003;</div>' +
-              '<h3 style="margin:0 0 0.5rem">Payment Confirmed</h3>' +
-              '<p style="color:#ccc;margin:0">Your preorder has been placed. You\'ll receive a receipt at test@example.com.</p>' +
-            '</div>'
+          renderSuccessConfirmation(form, document.getElementById('email').value)
         }
       } catch (err) {
-        resultEl.innerHTML = '<p style="color:#ff6b6b;margin:0 0 1rem">' + err.message + '</p>'
-        submitBtn.disabled = false
-        submitBtn.textContent = 'Pay $249.00'
+        showError(resultEl, err.message)
+        setSubmitButton(submitBtn, PACK)
       }
     }
 
-    const event = new Event('submit', { cancelable: true })
     form.addEventListener('submit', handleSubmit)
-    form.dispatchEvent(event)
+    form.dispatchEvent(new Event('submit', { cancelable: true }))
 
     await vi.waitFor(() => {
       expect(resultEl.innerHTML).toContain('Your card was declined')
@@ -368,47 +452,29 @@ describe('checkout confirmPayment integration (jsdom)', () => {
                 name: fields.name,
                 email: document.getElementById('email').value,
                 phone: '',
-                address: {
-                  line1: fields.address,
-                  city: fields.city,
-                  state: fields.state,
-                  postal_code: fields.zip,
-                  country: 'US',
-                },
+                address: { line1: fields.address, city: fields.city, state: fields.state, postal_code: fields.zip, country: 'US' },
               },
             },
-            shipping: {
-              name: fields.name,
-              address: buildShippingAddress(fields),
-            },
+            shipping: { name: fields.name, address: buildShippingAddress(fields) },
           },
         })
 
         var outcome = getConfirmPaymentOutcome(confirmResult)
-
         if (outcome.type === 'error') {
-          resultEl.innerHTML = '<p style="color:#ff6b6b">' + outcome.message + '</p>'
-          submitBtn.disabled = false
-          submitBtn.textContent = 'Pay $249.00'
+          showError(resultEl, outcome.message)
+          setSubmitButton(submitBtn, PACK)
         } else if (outcome.type === 'success') {
           document.getElementById('stripe-payment-element').innerHTML = ''
-          form.innerHTML =
-            '<div class="card" style="background:#222;padding:2rem;border-radius:8px;border:4px solid #1F3D1B;text-align:center">' +
-              '<div style="font-size:3rem;margin-bottom:0.5rem">&#10003;</div>' +
-              '<h3 style="margin:0 0 0.5rem">Payment Confirmed</h3>' +
-              '<p style="color:#ccc;margin:0">Your preorder has been placed. You\'ll receive a receipt at test@example.com.</p>' +
-            '</div>'
+          renderSuccessConfirmation(form, document.getElementById('email').value)
         }
       } catch (err) {
-        resultEl.innerHTML = '<p style="color:#ff6b6b;margin:0 0 1rem">' + err.message + '</p>'
-        submitBtn.disabled = false
-        submitBtn.textContent = 'Pay $249.00'
+        showError(resultEl, err.message)
+        setSubmitButton(submitBtn, PACK)
       }
     }
 
-    const event = new Event('submit', { cancelable: true })
     form.addEventListener('submit', handleSubmit)
-    form.dispatchEvent(event)
+    form.dispatchEvent(new Event('submit', { cancelable: true }))
 
     await vi.waitFor(() => {
       expect(resultEl.innerHTML).toContain('Stripe API error')
@@ -419,9 +485,7 @@ describe('checkout confirmPayment integration (jsdom)', () => {
 
   it('does not modify form when requires_action (Stripe handles redirect)', async () => {
     globalThis.stripe = {
-      confirmPayment: vi.fn().mockResolvedValue({
-        paymentIntent: { status: 'requires_action' },
-      }),
+      confirmPayment: vi.fn().mockResolvedValue({ paymentIntent: { status: 'requires_action' } }),
     }
 
     const form = document.getElementById('checkoutForm')
@@ -444,51 +508,29 @@ describe('checkout confirmPayment integration (jsdom)', () => {
                 name: fields.name,
                 email: document.getElementById('email').value,
                 phone: '',
-                address: {
-                  line1: fields.address,
-                  city: fields.city,
-                  state: fields.state,
-                  postal_code: fields.zip,
-                  country: 'US',
-                },
+                address: { line1: fields.address, city: fields.city, state: fields.state, postal_code: fields.zip, country: 'US' },
               },
             },
-            shipping: {
-              name: fields.name,
-              address: buildShippingAddress(fields),
-            },
+            shipping: { name: fields.name, address: buildShippingAddress(fields) },
           },
         })
 
         var outcome = getConfirmPaymentOutcome(confirmResult)
-
         if (outcome.type === 'error') {
-          resultEl.innerHTML = '<p style="color:#ff6b6b">' + outcome.message + '</p>'
-          if (submitBtn) {
-            submitBtn.disabled = false
-            submitBtn.textContent = 'Pay $249.00'
-          }
+          showError(resultEl, outcome.message)
+          setSubmitButton(submitBtn, PACK)
         } else if (outcome.type === 'success') {
           document.getElementById('stripe-payment-element').innerHTML = ''
-          form.innerHTML =
-            '<div class="card" style="background:#222;padding:2rem;border-radius:8px;border:4px solid #1F3D1B;text-align:center">' +
-              '<div style="font-size:3rem;margin-bottom:0.5rem">&#10003;</div>' +
-              '<h3 style="margin:0 0 0.5rem">Payment Confirmed</h3>' +
-              '<p style="color:#ccc;margin:0">Your preorder has been placed. You\'ll receive a receipt at test@example.com.</p>' +
-            '</div>'
+          renderSuccessConfirmation(form, document.getElementById('email').value)
         }
       } catch (err) {
-        resultEl.innerHTML = '<p style="color:#ff6b6b;margin:0 0 1rem">' + err.message + '</p>'
-        if (submitBtn) {
-          submitBtn.disabled = false
-          submitBtn.textContent = 'Pay $249.00'
-        }
+        showError(resultEl, err.message)
+        setSubmitButton(submitBtn, PACK)
       }
     }
 
-    const event = new Event('submit', { cancelable: true })
     form.addEventListener('submit', handleSubmit)
-    form.dispatchEvent(event)
+    form.dispatchEvent(new Event('submit', { cancelable: true }))
 
     await vi.waitFor(() => {
       expect(resultEl.innerHTML).toBe('')

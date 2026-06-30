@@ -1,0 +1,116 @@
+---
+layout: landing
+title: "Nimble Outdoors - Quick Checkout"
+description: "Express checkout for Nimble Climbing Sticks"
+---
+
+<section class="checkout-section">
+  <div class="container">
+    <h2>Quick Checkout</h2>
+    <div class="checkout-grid">
+      <div class="checkout-summary">
+        <h3>Your Order</h3>
+        <div class="checkout-product-card">
+          <div class="checkout-stick-visual" id="cartSticks"></div>
+          <div class="checkout-product-info">
+            <h4 id="cartName">Nimble Climbing Sticks — 4-Pack</h4>
+            <p class="checkout-product-price" id="cartPrice">$249.00</p>
+            <ul class="checkout-product-specs" id="cartSpecs">
+              <li><strong>4</strong> carbon fiber sticks</li>
+              <li><strong>3 lb 4 oz</strong> total weight</li>
+              <li><strong>~16 ft</strong> climb height</li>
+              <li>Daisy chain rope attachment</li>
+              <li>Made in Osseo, Wisconsin</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="checkout-payment">
+        <form id="helcimForm">
+          <div id="helcimResults"></div>
+
+          <div id="stripe-payment-element" style="margin-bottom:24px">
+          </div>
+
+          <button type="submit" id="submit-btn" class="btn btn-primary">
+            Pay $249.00
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script src="https://js.stripe.com/v3/"></script>
+<script type="module">
+  import { PACKS, getSpecsHtml, renderStickIcons } from '/assets/js/packs.js'
+  import {
+    WORKER_URL, STRIPE_PK, getConfirmPaymentOutcome,
+    createPaymentAppearance, createPaymentFieldsDefault,
+    renderSuccessConfirmation, setSubmitButton,
+    createPaymentIntent, showError
+  } from '/assets/js/payment.js'
+
+  var params = new URLSearchParams(window.location.search);
+  var packIndex = parseInt(params.get("pack")) || 2;
+  if (packIndex < 1 || packIndex > 3) packIndex = 2;
+  var pack = PACKS[packIndex - 1];
+
+  renderStickIcons(document.getElementById("cartSticks"), pack.sticks, "checkout-stick-icon");
+  document.getElementById("cartName").textContent = "Nimble Climbing Sticks \u2014 " + pack.name;
+  document.getElementById("cartPrice").textContent = "$" + pack.price.toFixed(2);
+  document.getElementById("cartSpecs").innerHTML = getSpecsHtml(pack);
+
+  var stripe = Stripe(STRIPE_PK);
+  var form = document.getElementById("helcimForm");
+  var submitBtn = document.getElementById("submit-btn");
+  var resultEl = document.getElementById("helcimResults");
+
+  setSubmitButton(submitBtn, pack);
+
+  async function initializeCheckout() {
+    resultEl.innerHTML = '<p style="color:#ccc">Setting up payment form\u2026</p>';
+
+    try {
+      var clientSecret = await createPaymentIntent(pack.price, pack.name);
+
+      var elements = stripe.elements({ clientSecret: clientSecret, appearance: createPaymentAppearance() });
+      var paymentElement = elements.create('payment', createPaymentFieldsDefault());
+      paymentElement.mount('#stripe-payment-element');
+      resultEl.innerHTML = '';
+
+      form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Processing\u2026';
+
+        try {
+          var confirmResult = await stripe.confirmPayment({
+            elements: elements,
+            redirect: 'if_required',
+            confirmParams: {
+              return_url: WORKER_URL + '/confirm',
+            },
+          });
+
+          var outcome = getConfirmPaymentOutcome(confirmResult);
+          if (outcome.type === 'error') {
+            showError(resultEl, outcome.message);
+            setSubmitButton(submitBtn, pack);
+          } else if (outcome.type === 'success') {
+            var email = confirmResult.paymentIntent.receipt_email || 'your email on file';
+            document.getElementById('stripe-payment-element').innerHTML = '';
+            renderSuccessConfirmation(form, email);
+          }
+        } catch (err) {
+          showError(resultEl, err.message);
+          setSubmitButton(submitBtn, pack);
+        }
+      });
+    } catch (err) {
+      showError(resultEl, err.message);
+    }
+  }
+
+  initializeCheckout();
+</script>

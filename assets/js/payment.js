@@ -72,6 +72,10 @@ export function createPaymentFields() {
   }
 }
 
+export function createPaymentFieldsDefault() {
+  return {}
+}
+
 export function renderSuccessConfirmation(form, email) {
   form.innerHTML =
     '<div class="card" style="background:#222;padding:2rem;border-radius:8px;border:4px solid #1F3D1B;text-align:center">' +

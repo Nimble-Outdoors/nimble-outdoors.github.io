@@ -2,8 +2,8 @@
  * @vitest-environment jsdom
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { getFormspreeStatus } from '../assets/js/signup.js'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import { getFormspreeStatus, initSignupForm } from '../assets/js/signup.js'
 
 describe('getFormspreeStatus', () => {
   it('returns null for successful response', () => {
@@ -30,14 +30,14 @@ describe('getFormspreeStatus', () => {
     )
   })
 
-  it('returns fallback message for empty errors array', () => {
+  it('returns empty string for empty errors array', () => {
     const res = { ok: false }
     const data = { errors: [] }
     expect(getFormspreeStatus(res, data)).toBe('')
   })
 })
 
-describe('signup form integration (jsdom)', () => {
+describe('initSignupForm', () => {
   beforeEach(() => {
     document.body.innerHTML = `
       <form id="waitingListForm" action="https://formspree.io/f/mykdrwlr" method="POST">
@@ -47,46 +47,29 @@ describe('signup form integration (jsdom)', () => {
       </form>
       <p id="waitingListFormStatus"></p>
     `
-    // Mock grecaptcha
     globalThis.grecaptcha = {
       execute: vi.fn().mockResolvedValue('recaptcha_token_abc'),
     }
   })
 
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
   it('shows success message and resets form on 200', async () => {
     globalThis.fetch = vi.fn().mockResolvedValue({ ok: true })
 
-    // Evaluate the inline script
+    initSignupForm()
     const form = document.getElementById('waitingListForm')
-    const handleSubmit = async (event) => {
-      event.preventDefault()
-      const status = document.getElementById('waitingListFormStatus')
-      const token = await grecaptcha.execute('6Lfr-agpAAAAAAfwGOtDvgX6cI0woP5J9VPMui7C', { action: 'submit' })
-      document.getElementById('g-recaptcha-response').value = token
-      const data = new FormData(event.target)
-      const response = await fetch(event.target.action, {
-        method: form.method,
-        body: data,
-        headers: { 'Accept': 'application/json' },
-      })
-      if (response.ok) {
-        status.innerHTML = "You're all signed up!"
-        form.reset()
-      }
-    }
+    form.dispatchEvent(new Event('submit', { cancelable: true }))
 
-    const event = new Event('submit', { cancelable: true })
-    form.addEventListener('submit', handleSubmit)
-    form.dispatchEvent(event)
-
-    // Wait for async handler
     await vi.waitFor(() => {
       expect(document.getElementById('waitingListFormStatus').innerHTML).toBe("You're all signed up!")
     })
     expect(document.getElementById('g-recaptcha-response').value).toBe('recaptcha_token_abc')
     expect(globalThis.fetch).toHaveBeenCalledWith(
       'https://formspree.io/f/mykdrwlr',
-      expect.any(Object)
+      expect.objectContaining({ method: 'post' })
     )
   })
 
@@ -96,36 +79,9 @@ describe('signup form integration (jsdom)', () => {
       json: () => Promise.resolve({ errors: [{ message: 'Email is invalid' }] }),
     })
 
+    initSignupForm()
     const form = document.getElementById('waitingListForm')
-    const handleSubmit = async (event) => {
-      event.preventDefault()
-      const status = document.getElementById('waitingListFormStatus')
-      const token = await grecaptcha.execute('6Lfr-agpAAAAAAfwGOtDvgX6cI0woP5J9VPMui7C', { action: 'submit' })
-      document.getElementById('g-recaptcha-response').value = token
-      const data = new FormData(event.target)
-      fetch(event.target.action, {
-        method: form.method,
-        body: data,
-        headers: { 'Accept': 'application/json' },
-      }).then(response => {
-        if (response.ok) {
-          status.innerHTML = "You're all signed up!"
-          form.reset()
-        } else {
-          response.json().then(data => {
-            if (Object.hasOwn(data, 'errors')) {
-              status.innerHTML = data["errors"].map(error => error["message"]).join(", ")
-            } else {
-              status.innerHTML = "Oops! Something went wrong. Try just emailing joey@nimbleoutdoorsllc.com"
-            }
-          })
-        }
-      })
-    }
-
-    const event = new Event('submit', { cancelable: true })
-    form.addEventListener('submit', handleSubmit)
-    form.dispatchEvent(event)
+    form.dispatchEvent(new Event('submit', { cancelable: true }))
 
     await vi.waitFor(() => {
       expect(document.getElementById('waitingListFormStatus').innerHTML).toBe('Email is invalid')
@@ -138,36 +94,9 @@ describe('signup form integration (jsdom)', () => {
       json: () => Promise.resolve({}),
     })
 
+    initSignupForm()
     const form = document.getElementById('waitingListForm')
-    const handleSubmit = async (event) => {
-      event.preventDefault()
-      const status = document.getElementById('waitingListFormStatus')
-      const token = await grecaptcha.execute('6Lfr-agpAAAAAAfwGOtDvgX6cI0woP5J9VPMui7C', { action: 'submit' })
-      document.getElementById('g-recaptcha-response').value = token
-      const data = new FormData(event.target)
-      fetch(event.target.action, {
-        method: form.method,
-        body: data,
-        headers: { 'Accept': 'application/json' },
-      }).then(response => {
-        if (response.ok) {
-          status.innerHTML = "You're all signed up!"
-          form.reset()
-        } else {
-          response.json().then(data => {
-            if (Object.hasOwn(data, 'errors')) {
-              status.innerHTML = data["errors"].map(error => error["message"]).join(", ")
-            } else {
-              status.innerHTML = "Oops! Something went wrong. Try just emailing joey@nimbleoutdoorsllc.com"
-            }
-          })
-        }
-      })
-    }
-
-    const event = new Event('submit', { cancelable: true })
-    form.addEventListener('submit', handleSubmit)
-    form.dispatchEvent(event)
+    form.dispatchEvent(new Event('submit', { cancelable: true }))
 
     await vi.waitFor(() => {
       expect(document.getElementById('waitingListFormStatus').innerHTML).toBe(
@@ -179,25 +108,9 @@ describe('signup form integration (jsdom)', () => {
   it('shows fallback message on network error', async () => {
     globalThis.fetch = vi.fn().mockRejectedValue(new Error('Network failure'))
 
+    initSignupForm()
     const form = document.getElementById('waitingListForm')
-    const handleSubmit = async (event) => {
-      event.preventDefault()
-      const status = document.getElementById('waitingListFormStatus')
-      const token = await grecaptcha.execute('6Lfr-agpAAAAAAfwGOtDvgX6cI0woP5J9VPMui7C', { action: 'submit' })
-      document.getElementById('g-recaptcha-response').value = token
-      const data = new FormData(event.target)
-      fetch(event.target.action, {
-        method: form.method,
-        body: data,
-        headers: { 'Accept': 'application/json' },
-      }).catch(error => {
-        status.innerHTML = "Oops! Something went wrong. Try just emailing joey@nimbleoutdoorsllc.com"
-      })
-    }
-
-    const event = new Event('submit', { cancelable: true })
-    form.addEventListener('submit', handleSubmit)
-    form.dispatchEvent(event)
+    form.dispatchEvent(new Event('submit', { cancelable: true }))
 
     await vi.waitFor(() => {
       expect(document.getElementById('waitingListFormStatus').innerHTML).toBe(
@@ -209,27 +122,9 @@ describe('signup form integration (jsdom)', () => {
   it('injects reCAPTCHA token into hidden field', async () => {
     globalThis.fetch = vi.fn().mockResolvedValue({ ok: true })
 
+    initSignupForm()
     const form = document.getElementById('waitingListForm')
-    const handleSubmit = async (event) => {
-      event.preventDefault()
-      const status = document.getElementById('waitingListFormStatus')
-      const token = await grecaptcha.execute('6Lfr-agpAAAAAAfwGOtDvgX6cI0woP5J9VPMui7C', { action: 'submit' })
-      document.getElementById('g-recaptcha-response').value = token
-      const data = new FormData(event.target)
-      const response = await fetch(event.target.action, {
-        method: form.method,
-        body: data,
-        headers: { 'Accept': 'application/json' },
-      })
-      if (response.ok) {
-        status.innerHTML = "You're all signed up!"
-        form.reset()
-      }
-    }
-
-    const event = new Event('submit', { cancelable: true })
-    form.addEventListener('submit', handleSubmit)
-    form.dispatchEvent(event)
+    form.dispatchEvent(new Event('submit', { cancelable: true }))
 
     await vi.waitFor(() => {
       expect(document.getElementById('g-recaptcha-response').value).toBe('recaptcha_token_abc')
