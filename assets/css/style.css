@@ -385,7 +385,7 @@ a {
   color: var(--color-text-light);
 }
 
-#helcimForm {
+#checkoutForm {
   max-width: 500px;
   margin: 0 auto;
   background: var(--color-bg);
@@ -441,7 +441,7 @@ a {
   max-width: 120px;
 }
 
-#helcimResults {
+#checkoutResults {
   margin-bottom: 20px;
   font-family: var(--font-body);
   font-size: 0.9rem;
@@ -1446,7 +1446,7 @@ a {
 }
 
 /* Right — Payment */
-.checkout-payment #helcimForm {
+.checkout-payment #checkoutForm {
   max-width: 100%;
   margin: 0;
   background: var(--color-bg-alt);

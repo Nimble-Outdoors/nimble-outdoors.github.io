@@ -36,8 +36,8 @@ description: "Choose your pack and complete your preorder"
             </div>
           </div>
         </div>
-        <form id="helcimForm">
-          <div id="helcimResults"></div>
+        <form id="checkoutForm">
+          <div id="checkoutResults"></div>
 
           <div class="form-group">
             <label for="email">Email Address</label>
@@ -88,13 +88,12 @@ description: "Choose your pack and complete your preorder"
 
 <script src="https://js.stripe.com/v3/"></script>
 <script type="module">
-  import { fetchPacks, PACK_DETAILS, renderStickIcons } from '/assets/js/packs.js'
   import {
-    WORKER_URL, STRIPE_PK, getConfirmPaymentOutcome, validateEmail,
-    getShippingFields, buildShippingAddress, createPaymentAppearance,
-    createPaymentFields, renderSuccessConfirmation, setSubmitButton,
-    createPaymentIntent, showError
-  } from '/assets/js/payment.js'
+    WORKER_URL, STRIPE_PK, renderStickIcons,
+    getConfirmPaymentOutcome, validateEmail, getShippingFields,
+    buildShippingAddress, createPaymentAppearance, createPaymentFields,
+    renderSuccessConfirmation, setSubmitButton, initCheckout, showError
+  } from '/assets/js/checkout.js'
 
   var packs = [];
   var selectedIndex = 1;
@@ -138,15 +137,17 @@ description: "Choose your pack and complete your preorder"
   }
 
   async function init() {
-    var resultEl = document.getElementById("helcimResults");
-    var submitBtn = document.getElementById("submit-btn");
-    var form = document.getElementById("helcimForm");
+    resultEl = document.getElementById("checkoutResults");
+    submitBtn = document.getElementById("submit-btn");
+    form = document.getElementById("checkoutForm");
 
-    resultEl.innerHTML = '<p style="color:#ccc">Loading pricing…</p>';
+    resultEl.innerHTML = '<p style="color:#ccc">Loading…</p>';
     submitBtn.disabled = true;
 
+    var data;
     try {
-      packs = await fetchPacks();
+      data = await initCheckout(selectedIndex + 1);
+      packs = data.packs;
     } catch (err) {
       showError(resultEl, 'Pricing currently unavailable. Please try again later.');
       return;
@@ -162,7 +163,7 @@ description: "Choose your pack and complete your preorder"
 
     try {
       var pack = packs[selectedIndex];
-      var clientSecret = await createPaymentIntent(pack.stripePriceId || '', pack.name, emailInput.value);
+      var clientSecret = data.clientSecret;
 
       var elements = stripe.elements({ clientSecret: clientSecret, appearance: createPaymentAppearance() });
       var paymentElement = elements.create('payment', createPaymentFields());

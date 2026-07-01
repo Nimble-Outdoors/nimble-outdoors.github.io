@@ -7,9 +7,9 @@ import {
   getConfirmPaymentOutcome, validateEmail, getShippingFields,
   buildShippingAddress, createPaymentAppearance, createPaymentFields,
   createPaymentFieldsDefault, renderSuccessConfirmation, setSubmitButton,
-  createPaymentIntent, showError
-} from '../assets/js/payment.js'
-import { fetchPacks, PACK_DETAILS, resetPacksCache } from '../assets/js/packs.js'
+  showError, PACK_DETAILS,
+  initCheckout, renderStickIcons, getSpecsHtml
+} from '../assets/js/checkout.js'
 
 describe('getConfirmPaymentOutcome', () => {
   it('returns error when confirmResult has an error', () => {
@@ -250,75 +250,203 @@ describe('PACK_DETAILS', () => {
   })
 })
 
-describe('fetchPacks', () => {
-  beforeEach(() => {
-    resetPacksCache()
-  })
 
+
+describe('initCheckout', () => {
   afterEach(() => {
     vi.restoreAllMocks()
   })
 
-  it('merges fetched prices into static details', async () => {
+  it('returns packs and clientSecret in one call', async () => {
     globalThis.fetch = vi.fn().mockResolvedValue({
       ok: true,
-      json: () => Promise.resolve([
-        { name: '3-Pack', sku: 'pack-3', price: 199, stripePriceId: 'price_3' },
-        { name: '4-Pack', sku: 'pack-4', price: 249, stripePriceId: 'price_4' },
-        { name: '5-Pack', sku: 'pack-5', price: 299, stripePriceId: 'price_5' },
-      ]),
+      json: () => Promise.resolve({
+        packs: [
+          { sku: 'pack-3', name: '3-Pack', price: 199, sticks: 3, stripePriceId: 'price_a' },
+          { sku: 'pack-4', name: '4-Pack', price: 249, sticks: 4, stripePriceId: 'price_b' },
+          { sku: 'pack-5', name: '5-Pack', price: 299, sticks: 5, stripePriceId: 'price_c' },
+        ],
+        clientSecret: 'pi_123_secret_abc',
+      }),
     })
-    const packs = await fetchPacks()
-    expect(packs).toHaveLength(3)
-    expect(packs[0].price).toBe(199)
-    expect(packs[0].stripePriceId).toBe('price_3')
-    expect(packs[0].sticks).toBe(3)
-    expect(packs[0].name).toBe('3-Pack')
-  })
 
-  it('throws when fetch fails', async () => {
-    globalThis.fetch = vi.fn().mockRejectedValue(new Error('Network failure'))
-    await expect(fetchPacks()).rejects.toThrow('Network failure')
-  })
-})
-
-describe('createPaymentIntent', () => {
-  afterEach(() => {
-    vi.restoreAllMocks()
-  })
-
-  it('returns clientSecret on success', async () => {
-    globalThis.fetch = vi.fn().mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve({ clientSecret: 'pi_123_secret_abc' }),
-    })
-    const result = await createPaymentIntent('price_4pack', '4-Pack', 'test@example.com')
-    expect(result).toBe('pi_123_secret_abc')
-  })
-
-  it('sends priceId, packName, and email in request body', async () => {
-    let body = null
-    globalThis.fetch = vi.fn().mockImplementation(async (url, opts) => {
-      body = JSON.parse(opts.body)
-      return { ok: true, json: () => Promise.resolve({ clientSecret: 'pi_s' }) }
-    })
-    await createPaymentIntent('price_3pack', '3-Pack', 'a@b.com')
-    expect(body.priceId).toBe('price_3pack')
-    expect(body.packName).toBe('3-Pack')
-    expect(body.email).toBe('a@b.com')
+    const data = await initCheckout(4)
+    expect(data.packs).toHaveLength(3)
+    expect(data.clientSecret).toBe('pi_123_secret_abc')
+    expect(data.packs[1].name).toBe('4-Pack')
   })
 
   it('throws on non-ok response', async () => {
     globalThis.fetch = vi.fn().mockResolvedValue({
       ok: false,
-      json: () => Promise.resolve({ error: 'Invalid price' }),
+      json: () => Promise.resolve({ error: 'Invalid pack' }),
     })
-    await expect(createPaymentIntent('', 'test')).rejects.toThrow('Invalid price')
+    await expect(initCheckout(99)).rejects.toThrow('Invalid pack')
   })
 
   it('throws on network failure', async () => {
     globalThis.fetch = vi.fn().mockRejectedValue(new Error('Network failure'))
-    await expect(createPaymentIntent('price_x', 'test')).rejects.toThrow('Network failure')
+    await expect(initCheckout(4)).rejects.toThrow('Network failure')
+  })
+
+  it('sends email to Worker when provided', async () => {
+    let sentBody = null
+    globalThis.fetch = vi.fn().mockImplementation(async (url, opts) => {
+      sentBody = JSON.parse(opts.body)
+      return {
+        ok: true,
+        json: () => Promise.resolve({ packs: [{ name: '4-Pack', price: 249 }], clientSecret: 'pi_s' }),
+      }
+    })
+    await initCheckout(4, 'buyer@example.com')
+    expect(sentBody.packIndex).toBe(4)
+    expect(sentBody.email).toBe('buyer@example.com')
+  })
+
+  it('sends undefined email as undefined (omits from request)', async () => {
+    let sentBody = null
+    globalThis.fetch = vi.fn().mockImplementation(async (url, opts) => {
+      sentBody = JSON.parse(opts.body)
+      return {
+        ok: true,
+        json: () => Promise.resolve({ packs: [{ name: '4-Pack', price: 249 }], clientSecret: 'pi_s' }),
+      }
+    })
+    await initCheckout(4)
+    expect(sentBody.email).toBeUndefined()
+  })
+})
+
+describe('checkout init flow integration (jsdom)', () => {
+  const MOCK_DATA = {
+    packs: [
+      { sku: 'pack-3', name: '3-Pack', price: 199, weight: '2 lb 7 oz', sticks: 3, climb: '~12 ft', desc: '', stripePriceId: 'price_a' },
+      { sku: 'pack-4', name: '4-Pack', price: 249, weight: '3 lb 4 oz', sticks: 4, climb: '~16 ft', desc: '', stripePriceId: 'price_b' },
+      { sku: 'pack-5', name: '5-Pack', price: 299, weight: '4 lb 1 oz', sticks: 5, climb: '~20 ft', desc: '', stripePriceId: 'price_c' },
+    ],
+    clientSecret: 'pi_123_secret_abc',
+  }
+
+  beforeEach(() => {
+    document.body.innerHTML = `
+      <div id="checkoutResults"></div>
+      <div class="checkout-summary">
+        <div class="checkout-stick-visual" id="cartSticks"></div>
+        <div class="checkout-product-info">
+          <h4 id="cartName"></h4>
+          <p class="checkout-product-price" id="cartPrice"></p>
+          <ul class="checkout-product-specs" id="cartSpecs"></ul>
+        </div>
+      </div>
+      <div id="stripe-payment-element"></div>
+      <button type="submit" id="submit-btn">Pay $0.00</button>
+    `
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  it('renders the selected pack from initCheckout response', async () => {
+    globalThis.fetch = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve(MOCK_DATA) })
+
+    var data = await initCheckout(4)
+    var pack = data.packs[1]
+
+    renderStickIcons(document.getElementById('cartSticks'), pack.sticks, 'checkout-stick-icon')
+    document.getElementById('cartName').textContent = 'Nimble Climbing Sticks — ' + pack.name
+    document.getElementById('cartPrice').textContent = '$' + pack.price.toFixed(2)
+    document.getElementById('cartSpecs').innerHTML = getSpecsHtml(pack)
+    setSubmitButton(document.getElementById('submit-btn'), pack)
+
+    expect(document.getElementById('cartName').textContent).toBe('Nimble Climbing Sticks — 4-Pack')
+    expect(document.getElementById('cartPrice').textContent).toBe('$249.00')
+    expect(document.getElementById('cartSpecs').innerHTML).toContain('>4<')
+    expect(document.getElementById('cartSpecs').innerHTML).toContain('carbon fiber sticks')
+    expect(document.getElementById('submit-btn').textContent).toBe('Pay $249.00')
+    expect(document.getElementById('submit-btn').disabled).toBe(false)
+    expect(document.getElementById('cartSticks').children.length).toBe(4)
+  })
+
+  it('renders success and clears payment element when confirmPayment succeeds', async () => {
+    globalThis.fetch = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve(MOCK_DATA) })
+    var mockElements = { create: vi.fn().mockReturnValue({ mount: vi.fn() }) }
+    var mockStripe = {
+      elements: vi.fn().mockReturnValue(mockElements),
+      confirmPayment: vi.fn().mockResolvedValue({ paymentIntent: { status: 'succeeded' } }),
+    }
+    globalThis.Stripe = vi.fn().mockReturnValue(mockStripe)
+
+    var data = await initCheckout(4)
+    var stripe = Stripe('pk_test_fake')
+    var elements = stripe.elements({ clientSecret: data.clientSecret })
+    var paymentElement = elements.create('payment')
+    paymentElement.mount('#stripe-payment-element')
+
+    var confirmResult = await stripe.confirmPayment({ elements })
+    var outcome = getConfirmPaymentOutcome(confirmResult)
+    if (outcome.type === 'success') {
+      document.getElementById('stripe-payment-element').innerHTML = ''
+      renderSuccessConfirmation(document.getElementById('checkoutResults'), 'test@example.com')
+    }
+
+    expect(globalThis.Stripe).toHaveBeenCalledWith('pk_test_fake')
+    expect(stripe.elements).toHaveBeenCalledWith({ clientSecret: 'pi_123_secret_abc' })
+    expect(mockElements.create).toHaveBeenCalledWith('payment')
+    expect(document.getElementById('stripe-payment-element').innerHTML).toBe('')
+    expect(document.getElementById('checkoutResults').innerHTML).toContain('Payment Confirmed')
+    expect(document.getElementById('checkoutResults').innerHTML).toContain('test@example.com')
+  })
+
+  it('shows error in checkoutResults when initCheckout fails', async () => {
+    globalThis.fetch = vi.fn().mockRejectedValue(new Error('Network failure'))
+    globalThis.Stripe = vi.fn()
+
+    var resultEl = document.getElementById('checkoutResults')
+    var submitBtn = document.getElementById('submit-btn')
+
+    resultEl.innerHTML = '<p style="color:#ccc">Loading…</p>'
+    submitBtn.disabled = true
+
+    try {
+      await initCheckout(4)
+    } catch (err) {
+      showError(resultEl, 'Pricing currently unavailable. Please try again later.')
+      return
+    }
+
+    expect(resultEl.innerHTML).toContain('Pricing currently unavailable')
+    expect(resultEl.innerHTML).toContain('#ff6b6b')
+  })
+
+  it('renders "Pricing currently unavailable. Please try again later." via inline init() when Worker rejects', async () => {
+    globalThis.fetch = vi.fn().mockRejectedValue(new Error('Worker unreachable'))
+    globalThis.Stripe = vi.fn()
+
+    async function init() {
+      var resultEl = document.getElementById('checkoutResults')
+      var submitBtn = document.getElementById('submit-btn')
+
+      var params = new URLSearchParams(window.location.search)
+      var packIndex = parseInt(params.get('pack')) || 2
+      if (packIndex < 1 || packIndex > PACK_DETAILS.length) packIndex = 2
+
+      resultEl.innerHTML = '<p style="color:#ccc">Loading…</p>'
+      submitBtn.disabled = true
+
+      try {
+        var data = await initCheckout(packIndex)
+      } catch (err) {
+        showError(resultEl, 'Pricing currently unavailable. Please try again later.')
+        return
+      }
+    }
+
+    await init()
+
+    expect(document.getElementById('checkoutResults').innerHTML).toContain('Pricing currently unavailable. Please try again later.')
+    expect(document.getElementById('checkoutResults').innerHTML).toContain('#ff6b6b')
+    expect(document.getElementById('submit-btn').disabled).toBe(true)
   })
 })
 

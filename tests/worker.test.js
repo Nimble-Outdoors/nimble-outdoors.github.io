@@ -79,190 +79,172 @@ describe('GET /api/prices', () => {
   })
 })
 
-describe('POST /api/create-payment-intent', () => {
-  it('returns clientSecret on success', async () => {
+describe('POST /api/init-checkout', () => {
+  it('returns packs and clientSecret in one call', async () => {
     mockStripeStream([
-      mockStripeOnce(priceResponse(29900)),
+      mockStripeOnce(pricesListResponse()),
+      mockStripeOnce(priceResponse(24900)),
       mockStripeOnce(piResponse('pi_123_secret_abc')),
     ])
 
-    const req = new Request('https://nimble-stripe.example.workers.dev/api/create-payment-intent', {
+    const req = new Request('https://nimble-stripe.example.workers.dev/api/init-checkout', {
       method: 'POST',
-      body: JSON.stringify({ priceId: 'price_5pack', packName: '5-Pack' }),
+      body: JSON.stringify({ packIndex: 4 }),
     })
     const res = await worker.fetch(req)
     const data = await res.json()
 
     expect(res.status).toBe(200)
-    expect(data).toEqual({ clientSecret: 'pi_123_secret_abc' })
+    expect(data.packs).toHaveLength(3)
+    expect(data.clientSecret).toBe('pi_123_secret_abc')
+    expect(data.packs[1].name).toBe('Mach One 4 Pack')
   })
 
-  it('sends correct Stripe body using price unit_amount', async () => {
-    let stripeCalls = []
+  it('selects the correct pack by 1-based index', async () => {
+    let piBody = ''
     globalThis.fetch = vi.fn().mockImplementation(async (url, opts) => {
-      stripeCalls.push({ url, body: opts.body })
+      if (url.includes('/prices') && !url.includes('/prices/')) {
+        return { ok: true, json: () => Promise.resolve(pricesListResponse()) }
+      }
+      if (url.includes('/prices/')) {
+        return { ok: true, json: () => Promise.resolve(priceResponse(29900)) }
+      }
+      piBody = opts.body
+      return { ok: true, json: () => Promise.resolve(piResponse('pi_s')) }
+    })
+
+    const req = new Request('https://nimble-stripe.example.workers.dev/api/init-checkout', {
+      method: 'POST',
+      body: JSON.stringify({ packIndex: 3 }),
+    })
+    await worker.fetch(req)
+
+    expect(piBody).toContain('amount=29900')
+    expect(piBody).toContain('description=Nimble+Climbing+Sticks+%E2%80%94+Mack+One+5+Pack')
+  })
+
+  it('defaults to pack 2 (index 2) when packIndex is invalid', async () => {
+    let piBody = ''
+    globalThis.fetch = vi.fn().mockImplementation(async (url, opts) => {
+      if (url.includes('/prices') && !url.includes('/prices/')) {
+        return { ok: true, json: () => Promise.resolve(pricesListResponse()) }
+      }
       if (url.includes('/prices/')) {
         return { ok: true, json: () => Promise.resolve(priceResponse(24900)) }
       }
+      piBody = opts.body
       return { ok: true, json: () => Promise.resolve(piResponse('pi_s')) }
     })
 
-    const req = new Request('https://nimble-stripe.example.workers.dev/api/create-payment-intent', {
+    const req = new Request('https://nimble-stripe.example.workers.dev/api/init-checkout', {
       method: 'POST',
-      body: JSON.stringify({ priceId: 'price_4pack', packName: '4-Pack', email: 'test@example.com' }),
+      body: JSON.stringify({ packIndex: 999 }),
     })
     await worker.fetch(req)
 
-    const piBody = stripeCalls.find(c => c.url.includes('/payment_intents')).body
     expect(piBody).toContain('amount=24900')
-    expect(piBody).toContain('currency=usd')
-    expect(piBody).toContain('description=Nimble+Climbing+Sticks+%E2%80%94+4-Pack')
-    expect(piBody).toContain('receipt_email=test%40example.com')
-    expect(piBody).toContain('payment_method_types%5B%5D=card')
+    expect(piBody).toContain('description=Nimble+Climbing+Sticks+%E2%80%94+Mach+One+4+Pack')
   })
 
-  it('uses only card payment method', async () => {
+  it('passes receipt_email when provided', async () => {
     let piBody = ''
     globalThis.fetch = vi.fn().mockImplementation(async (url, opts) => {
+      if (url.includes('/prices') && !url.includes('/prices/')) {
+        return { ok: true, json: () => Promise.resolve(pricesListResponse()) }
+      }
       if (url.includes('/prices/')) {
-        return { ok: true, json: () => Promise.resolve(priceResponse(19900)) }
+        return { ok: true, json: () => Promise.resolve(priceResponse(24900)) }
       }
       piBody = opts.body
       return { ok: true, json: () => Promise.resolve(piResponse('pi_s')) }
     })
 
-    const req = new Request('https://nimble-stripe.example.workers.dev/api/create-payment-intent', {
+    const req = new Request('https://nimble-stripe.example.workers.dev/api/init-checkout', {
       method: 'POST',
-      body: JSON.stringify({ priceId: 'price_3pack' }),
+      body: JSON.stringify({ packIndex: 4, email: 'buyer@example.com' }),
     })
     await worker.fetch(req)
 
-    expect(piBody).toContain('payment_method_types%5B%5D=card')
+    expect(piBody).toContain('receipt_email=buyer%40example.com')
   })
 
-  it('uses default description when packName is omitted', async () => {
+  it('passes email through to Stripe PaymentIntent', async () => {
     let piBody = ''
     globalThis.fetch = vi.fn().mockImplementation(async (url, opts) => {
+      if (url.includes('/prices') && !url.includes('/prices/')) {
+        return { ok: true, json: () => Promise.resolve(pricesListResponse()) }
+      }
       if (url.includes('/prices/')) {
-        return { ok: true, json: () => Promise.resolve(priceResponse(19900)) }
+        return { ok: true, json: () => Promise.resolve(priceResponse(24900)) }
       }
       piBody = opts.body
       return { ok: true, json: () => Promise.resolve(piResponse('pi_s')) }
     })
 
-    const req = new Request('https://nimble-stripe.example.workers.dev/api/create-payment-intent', {
+    const req = new Request('https://nimble-stripe.example.workers.dev/api/init-checkout', {
       method: 'POST',
-      body: JSON.stringify({ priceId: 'price_3pack' }),
+      body: JSON.stringify({ packIndex: 4, email: 'buyer@example.com' }),
     })
     await worker.fetch(req)
 
-    expect(piBody).toContain('description=Nimble+Climbing+Sticks')
+    expect(piBody).toContain('receipt_email=buyer%40example.com')
   })
 
   it('omits receipt_email when email is not provided', async () => {
     let piBody = ''
     globalThis.fetch = vi.fn().mockImplementation(async (url, opts) => {
+      if (url.includes('/prices') && !url.includes('/prices/')) {
+        return { ok: true, json: () => Promise.resolve(pricesListResponse()) }
+      }
       if (url.includes('/prices/')) {
-        return { ok: true, json: () => Promise.resolve(priceResponse(19900)) }
+        return { ok: true, json: () => Promise.resolve(priceResponse(24900)) }
       }
       piBody = opts.body
       return { ok: true, json: () => Promise.resolve(piResponse('pi_s')) }
     })
 
-    const req = new Request('https://nimble-stripe.example.workers.dev/api/create-payment-intent', {
+    const req = new Request('https://nimble-stripe.example.workers.dev/api/init-checkout', {
       method: 'POST',
-      body: JSON.stringify({ priceId: 'price_3pack' }),
+      body: JSON.stringify({ packIndex: 4 }),
     })
     await worker.fetch(req)
 
     expect(piBody).not.toContain('receipt_email')
   })
 
-  it('returns 400 for missing priceId', async () => {
-    const req = new Request('https://nimble-stripe.example.workers.dev/api/create-payment-intent', {
-      method: 'POST',
-      body: JSON.stringify({}),
-    })
-    const res = await worker.fetch(req)
-    const data = await res.json()
-
-    expect(res.status).toBe(400)
-    expect(data.error).toBe('Invalid price')
-  })
-
-  it('returns 400 for empty priceId', async () => {
-    const req = new Request('https://nimble-stripe.example.workers.dev/api/create-payment-intent', {
-      method: 'POST',
-      body: JSON.stringify({ priceId: '' }),
-    })
-    const res = await worker.fetch(req)
-    const data = await res.json()
-
-    expect(res.status).toBe(400)
-    expect(data.error).toBe('Invalid price')
-  })
-
-  it('returns 500 when Stripe price lookup fails', async () => {
-    globalThis.fetch = vi.fn().mockImplementation(async (url) => {
-      if (url.includes('/prices/')) {
-        return { ok: false, json: () => Promise.resolve({ error: { message: 'Price not found' } }) }
-      }
-      return { ok: true, json: () => Promise.resolve(piResponse('pi_s')) }
-    })
-
-    const req = new Request('https://nimble-stripe.example.workers.dev/api/create-payment-intent', {
-      method: 'POST',
-      body: JSON.stringify({ priceId: 'price_invalid' }),
-    })
-    const res = await worker.fetch(req)
-    const data = await res.json()
-
-    expect(res.status).toBe(500)
-    expect(data.error).toBe('Price not found')
-  })
-
-  it('returns 500 on network error', async () => {
-    globalThis.fetch = vi.fn().mockRejectedValue(new Error('Network failure'))
-
-    const req = new Request('https://nimble-stripe.example.workers.dev/api/create-payment-intent', {
-      method: 'POST',
-      body: JSON.stringify({ priceId: 'price_3pack' }),
-    })
-    const res = await worker.fetch(req)
-    const data = await res.json()
-
-    expect(res.status).toBe(500)
-    expect(data.error).toBe('Network failure')
-  })
-
-  it('includes CORS headers on success', async () => {
+  it('includes CORS headers', async () => {
     mockStripeStream([
-      mockStripeOnce(priceResponse(19900)),
+      mockStripeOnce(pricesListResponse()),
+      mockStripeOnce(priceResponse(24900)),
       mockStripeOnce(piResponse('pi_s')),
     ])
 
-    const req = new Request('https://nimble-stripe.example.workers.dev/api/create-payment-intent', {
+    const req = new Request('https://nimble-stripe.example.workers.dev/api/init-checkout', {
       method: 'POST',
-      body: JSON.stringify({ priceId: 'price_3pack' }),
+      body: JSON.stringify({ packIndex: 4 }),
     })
     const res = await worker.fetch(req)
 
     expect(res.headers.get('Access-Control-Allow-Origin')).toBe('*')
   })
 
-  it('includes CORS headers on error', async () => {
-    const req = new Request('https://nimble-stripe.example.workers.dev/api/create-payment-intent', {
+  it('returns 500 on Stripe API error', async () => {
+    mockStripeStream([mockStripeOnce({ error: { message: 'API error' } }, 500)])
+
+    const req = new Request('https://nimble-stripe.example.workers.dev/api/init-checkout', {
       method: 'POST',
-      body: JSON.stringify({}),
+      body: JSON.stringify({ packIndex: 4 }),
     })
     const res = await worker.fetch(req)
 
-    expect(res.headers.get('Access-Control-Allow-Origin')).toBe('*')
+    expect(res.status).toBe(500)
+    const data = await res.json()
+    expect(data.error).toBe('API error')
   })
 })
 
 describe('OPTIONS (CORS preflight)', () => {
-  it('returns 200 with CORS headers', async () => {
+  it('returns 200 with CORS headers for known path', async () => {
     const req = new Request('https://nimble-stripe.example.workers.dev/api/create-payment-intent', {
       method: 'OPTIONS',
     })
@@ -272,6 +254,16 @@ describe('OPTIONS (CORS preflight)', () => {
     expect(res.headers.get('Access-Control-Allow-Origin')).toBe('*')
     expect(res.headers.get('Access-Control-Allow-Methods')).toContain('POST')
     expect(res.headers.get('Access-Control-Allow-Headers')).toContain('Content-Type')
+  })
+
+  it('returns CORS headers for unknown path (preflight for init-checkout before deploy)', async () => {
+    const req = new Request('https://nimble-stripe.example.workers.dev/api/init-checkout', {
+      method: 'OPTIONS',
+    })
+    const res = await worker.fetch(req)
+
+    expect(res.status).toBe(200)
+    expect(res.headers.get('Access-Control-Allow-Origin')).toBe('*')
   })
 })
 

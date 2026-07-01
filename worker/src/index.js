@@ -103,22 +103,35 @@ export default {
       }
     }
 
-    // Create PaymentIntent
-    if (request.method === 'POST' && url.pathname === '/api/create-payment-intent') {
+    // One-shot: fetch prices + create PaymentIntent for the selected pack
+    if (request.method === 'POST' && url.pathname === '/api/init-checkout') {
       try {
-        const { priceId, packName, email } = await request.json();
+        const { packIndex, email } = await request.json();
+        const secret = env.STRIPE_SECRET_KEY || globalThis.STRIPE_SECRET_KEY;
 
-        if (!priceId) {
-          return new Response(JSON.stringify({ error: 'Invalid price' }), {
+        const data = await stripeApi('/prices?active=true&expand[]=data.product&limit=10', secret);
+        const packs = data.data
+          .filter(p => p.product?.active !== false)
+          .map(p => ({
+            name: p.product.name,
+            sku: p.product.metadata?.sku || '',
+            price: (p.unit_amount || 0) / 100,
+            stripePriceId: p.id,
+          }))
+          .sort((a, b) => a.price - b.price);
+
+        const idx = (typeof packIndex === 'number' && packIndex >= 1 && packIndex <= packs.length) ? packIndex - 1 : 1;
+        const pack = packs[idx];
+        if (!pack) {
+          return new Response(JSON.stringify({ error: 'Invalid pack selection' }), {
             status: 400,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           });
         }
 
-        const secret = env.STRIPE_SECRET_KEY || globalThis.STRIPE_SECRET_KEY;
-        const stripePrice = await stripeApi('/prices/' + priceId, secret);
+        const stripePrice = await stripeApi('/prices/' + pack.stripePriceId, secret);
         const cents = stripePrice.unit_amount;
-        const description = packName ? 'Nimble Climbing Sticks — ' + packName : 'Nimble Climbing Sticks';
+        const description = 'Nimble Climbing Sticks — ' + pack.name;
 
         const body = new URLSearchParams({
           amount: String(cents),
@@ -126,17 +139,14 @@ export default {
           description: description,
           'payment_method_types[]': 'card',
         });
-
-        if (email) {
-          body.set('receipt_email', email);
-        }
+        if (email) body.set('receipt_email', email);
 
         const pi = await stripeApi('/payment_intents', secret, {
           method: 'POST',
           body: body.toString(),
         });
 
-        return new Response(JSON.stringify({ clientSecret: pi.client_secret }), {
+        return new Response(JSON.stringify({ packs, clientSecret: pi.client_secret }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       } catch (err) {
