@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 160" width="100" height="160">
+  <!-- Background -->
+  <rect width="100" height="160" rx="14" fill="#2b2d2b"/>
+
+  <g transform="rotate(8, 50, 80)">
+
+    <!-- Top cap (wide flat plate, rounded corners) -->
+    <rect x="17" y="14" width="66" height="14" rx="5" fill="#ffffff"/>
+
+    <!-- Main tube (narrow vertical bar, slightly rounded) -->
+    <rect x="40" y="28" width="20" height="98" rx="3" fill="#ffffff"/>
+
+    <!-- Bottom foot: convex curve downward -->
+    <path d="M 17 126 L 83 126 L 83 134 Q 50 142 17 134 Z" fill="#ffffff"/>
+
+    <!-- Loop attachment on right side: D-ring protruding right of tube -->
+    <path d="M 60 52 Q 80 52 80 62 Q 80 72 60 72" fill="none" stroke="#ffffff" stroke-width="5" stroke-linecap="round"/>
+
+  </g>
+</svg>
