@@ -237,6 +237,21 @@ describe('setSubmitButton', () => {
     setSubmitButton(btn, { price: 50 })
     expect(btn.textContent).toBe('Pay $50.00')
   })
+
+  it('shows discounted price when discount is provided', () => {
+    document.body.innerHTML = '<button id="btn3"></button>'
+    const btn = document.getElementById('btn3')
+    setSubmitButton(btn, { price: 249 }, { amount: 24.9 })
+    expect(btn.textContent).toBe('Pay $224.10')
+    expect(btn.disabled).toBe(false)
+  })
+
+  it('ignores discount when discount is null', () => {
+    document.body.innerHTML = '<button id="btn4"></button>'
+    const btn = document.getElementById('btn4')
+    setSubmitButton(btn, { price: 199 }, null)
+    expect(btn.textContent).toBe('Pay $199.00')
+  })
 })
 
 describe('PACK_DETAILS', () => {
@@ -314,6 +329,32 @@ describe('initCheckout', () => {
     })
     await initCheckout(4)
     expect(sentBody.email).toBeUndefined()
+  })
+
+  it('sends promoCode when provided', async () => {
+    let sentBody = null
+    globalThis.fetch = vi.fn().mockImplementation(async (url, opts) => {
+      sentBody = JSON.parse(opts.body)
+      return {
+        ok: true,
+        json: () => Promise.resolve({ packs: [{ name: '4-Pack', price: 249 }], clientSecret: 'pi_s' }),
+      }
+    })
+    await initCheckout(4, undefined, 'SAVE10')
+    expect(sentBody.promoCode).toBe('SAVE10')
+  })
+
+  it('omits promoCode when not provided', async () => {
+    let sentBody = null
+    globalThis.fetch = vi.fn().mockImplementation(async (url, opts) => {
+      sentBody = JSON.parse(opts.body)
+      return {
+        ok: true,
+        json: () => Promise.resolve({ packs: [{ name: '4-Pack', price: 249 }], clientSecret: 'pi_s' }),
+      }
+    })
+    await initCheckout(4)
+    expect(sentBody.promoCode).toBeUndefined()
   })
 })
 

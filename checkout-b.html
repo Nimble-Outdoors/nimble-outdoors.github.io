@@ -74,6 +74,17 @@ description: "Choose your pack and complete your preorder"
             </div>
           </fieldset>
 
+          <div class="promo-section">
+            <div class="form-group">
+              <label for="promo-code">Promo Code</label>
+              <div class="promo-input-row">
+                <input type="text" id="promo-code" placeholder="Enter code">
+                <button type="button" id="promo-apply-btn" class="btn btn-secondary">Apply</button>
+              </div>
+            </div>
+            <div id="promo-status"></div>
+          </div>
+
           <div id="stripe-payment-element" style="margin-bottom:24px">
           </div>
 
@@ -98,6 +109,13 @@ description: "Choose your pack and complete your preorder"
   var packs = [];
   var selectedIndex = 1;
   var stripe, form, submitBtn, resultEl, emailInput;
+  var discountInfo = null;
+  var currentPromoCode = '';
+  var elements, paymentElement;
+
+  function getEffectivePrice(pack) {
+    return discountInfo ? pack.price - discountInfo.amount : pack.price;
+  }
 
   function buildPackCards() {
     var container = document.getElementById("packCards");
@@ -126,14 +144,30 @@ description: "Choose your pack and complete your preorder"
       el.classList.toggle("checkout-pack-card--selected", parseInt(el.dataset.index) === index);
     });
 
-    setSubmitButton(submitBtn, pack);
+    // Clear promo when switching packs
+    if (currentPromoCode) {
+      clearPromo();
+    }
+
+    setSubmitButton(submitBtn, pack, discountInfo);
 
     document.getElementById("selSticks").textContent = pack.sticks;
     document.getElementById("selWeight").textContent = pack.weight;
     document.getElementById("selClimb").textContent = pack.climb;
-    document.getElementById("selPrice").textContent = "$" + pack.price;
+    document.getElementById("selPrice").textContent = "$" + (discountInfo ? getEffectivePrice(pack) : pack.price);
 
     renderStickIcons(document.getElementById("selectedSticks"), pack.sticks, "checkout-stick-icon");
+  }
+
+  function clearPromo() {
+    discountInfo = null;
+    currentPromoCode = '';
+    var input = document.getElementById("promo-code");
+    if (input) { input.value = ''; input.disabled = false; }
+    var applyBtn = document.getElementById("promo-apply-btn");
+    if (applyBtn) { applyBtn.textContent = 'Apply'; applyBtn.disabled = false; }
+    var status = document.getElementById("promo-status");
+    if (status) status.innerHTML = '';
   }
 
   async function init() {
@@ -161,13 +195,64 @@ description: "Choose your pack and complete your preorder"
 
     resultEl.innerHTML = '<p style="color:#ccc">Setting up payment form…</p>';
 
+    function mountPaymentElement(secret) {
+      if (paymentElement) paymentElement.destroy();
+      elements = stripe.elements({ clientSecret: secret, appearance: createPaymentAppearance() });
+      paymentElement = elements.create('payment', createPaymentFields());
+      paymentElement.mount('#stripe-payment-element');
+    }
+
+    function updatePriceDisplay(pack, discount) {
+      var priceEl = document.getElementById("selPrice");
+      if (discount) {
+        var discounted = pack.price - discount.amount;
+        priceEl.innerHTML = '<span style="text-decoration:line-through;opacity:0.5;margin-right:8px">$' + pack.price.toFixed(0) + '</span> <span style="color:#4CAF50">$' + discounted.toFixed(0) + '</span>';
+      } else {
+        priceEl.textContent = "$" + pack.price.toFixed(0);
+      }
+    }
+
+    var promoInput = document.getElementById("promo-code");
+    var promoApplyBtn = document.getElementById("promo-apply-btn");
+    var promoStatus = document.getElementById("promo-status");
+
+    promoApplyBtn.addEventListener('click', async function () {
+      var code = promoInput.value.trim();
+      if (!code) return;
+      promoApplyBtn.disabled = true;
+      promoApplyBtn.textContent = 'Applying…';
+      promoStatus.innerHTML = '';
+      try {
+        var res = await initCheckout(selectedIndex + 1, undefined, code);
+        data = res;
+        packs = res.packs;
+        discountInfo = res.discount || null;
+        currentPromoCode = code;
+
+        mountPaymentElement(res.clientSecret);
+        selectPack(selectedIndex);
+        updatePriceDisplay(packs[selectedIndex], discountInfo);
+        setSubmitButton(submitBtn, packs[selectedIndex], discountInfo);
+
+        if (discountInfo) {
+          promoStatus.innerHTML = '<p style="color:#4CAF50;font-size:0.85rem;margin:4px 0 0">Promo applied: ' + discountInfo.label + '</p>';
+          promoInput.disabled = true;
+          promoApplyBtn.textContent = 'Applied';
+        } else {
+          promoStatus.innerHTML = '<p style="color:#ff6b6b;font-size:0.85rem;margin:4px 0 0">Code could not be applied.</p>';
+        }
+      } catch (err) {
+        promoStatus.innerHTML = '<p style="color:#ff6b6b;font-size:0.85rem;margin:4px 0 0">' + err.message + '</p>';
+        promoApplyBtn.disabled = false;
+        promoApplyBtn.textContent = 'Apply';
+      }
+    });
+
     try {
       var pack = packs[selectedIndex];
       var clientSecret = data.clientSecret;
 
-      var elements = stripe.elements({ clientSecret: clientSecret, appearance: createPaymentAppearance() });
-      var paymentElement = elements.create('payment', createPaymentFields());
-      paymentElement.mount('#stripe-payment-element');
+      mountPaymentElement(clientSecret);
       resultEl.innerHTML = '';
 
       form.addEventListener('submit', async function (e) {
@@ -181,14 +266,14 @@ description: "Choose your pack and complete your preorder"
         if (!email || !validateEmail(email)) {
           showError(resultEl, 'Please enter a valid email address so we can send your receipt.');
           emailInput.focus();
-          setSubmitButton(submitBtn, pack);
+          setSubmitButton(submitBtn, pack, discountInfo);
           return;
         }
 
         var fields = getShippingFields();
         if (!fields.name || !fields.address || !fields.city || !fields.state || !fields.zip) {
           showError(resultEl, 'Please fill in all required shipping fields.');
-          setSubmitButton(submitBtn, pack);
+          setSubmitButton(submitBtn, pack, discountInfo);
           return;
         }
 
@@ -223,14 +308,14 @@ description: "Choose your pack and complete your preorder"
           var outcome = getConfirmPaymentOutcome(confirmResult);
           if (outcome.type === 'error') {
             showError(resultEl, outcome.message);
-            setSubmitButton(submitBtn, pack);
+            setSubmitButton(submitBtn, pack, discountInfo);
           } else if (outcome.type === 'success') {
             document.getElementById('stripe-payment-element').innerHTML = '';
             renderSuccessConfirmation(form, email);
           }
         } catch (err) {
           showError(resultEl, err.message);
-          setSubmitButton(submitBtn, pack);
+          setSubmitButton(submitBtn, pack, discountInfo);
         }
       });
     } catch (err) {

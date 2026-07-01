@@ -64,6 +64,17 @@ description: "Complete your preorder for Nimble Climbing Sticks"
             </div>
           </fieldset>
 
+          <div class="promo-section">
+            <div class="form-group">
+              <label for="promo-code">Promo Code</label>
+              <div class="promo-input-row">
+                <input type="text" id="promo-code" placeholder="Enter code">
+                <button type="button" id="promo-apply-btn" class="btn btn-secondary">Apply</button>
+              </div>
+            </div>
+            <div id="promo-status"></div>
+          </div>
+
           <div id="stripe-payment-element" style="margin-bottom:24px">
           </div>
 
@@ -97,7 +108,7 @@ description: "Complete your preorder for Nimble Climbing Sticks"
     resultEl.innerHTML = '<p style="color:#ccc">Loading…</p>';
     submitBtn.disabled = true;
 
-    var packs, clientSecret;
+    var packs, clientSecret, discountInfo;
     try {
       var data = await initCheckout(packIndex);
       packs = data.packs;
@@ -112,19 +123,71 @@ description: "Complete your preorder for Nimble Climbing Sticks"
     renderStickIcons(document.getElementById("cartSticks"), pack.sticks, "checkout-stick-icon");
     document.getElementById("cartName").textContent = "Nimble Climbing Sticks \u2014 " + pack.name;
     document.getElementById("cartPrice").textContent = "$" + pack.price.toFixed(2);
+    if (discountInfo) updatePriceDisplay(pack, discountInfo);
     document.getElementById("cartSpecs").innerHTML = getSpecsHtml(pack);
 
     var stripe = Stripe(STRIPE_PK);
     var emailInput = document.getElementById("email");
+    var promoInput = document.getElementById("promo-code");
+    var promoApplyBtn = document.getElementById("promo-apply-btn");
+    var promoStatus = document.getElementById("promo-status");
+    var currentPromoCode = '';
+    var elements, paymentElement;
 
     setSubmitButton(submitBtn, pack);
 
     resultEl.innerHTML = '<p style="color:#ccc">Setting up payment form…</p>';
 
-    try {
-      var elements = stripe.elements({ clientSecret: clientSecret, appearance: createPaymentAppearance() });
-      var paymentElement = elements.create('payment', createPaymentFields());
+    function updatePriceDisplay(pack, discount) {
+      var priceEl = document.getElementById("cartPrice");
+      if (discount) {
+        var discounted = pack.price - discount.amount;
+        priceEl.innerHTML = '<span style="text-decoration:line-through;opacity:0.5;margin-right:10px">$' + pack.price.toFixed(2) + '</span> <span style="color:#4CAF50">$' + discounted.toFixed(2) + '</span>';
+      } else {
+        priceEl.textContent = "$" + pack.price.toFixed(2);
+      }
+    }
+
+    function mountPaymentElement(secret) {
+      if (paymentElement) paymentElement.destroy();
+      elements = stripe.elements({ clientSecret: secret, appearance: createPaymentAppearance() });
+      paymentElement = elements.create('payment', createPaymentFields());
       paymentElement.mount('#stripe-payment-element');
+    }
+
+    promoApplyBtn.addEventListener('click', async function () {
+      var code = promoInput.value.trim();
+      if (!code) return;
+      promoApplyBtn.disabled = true;
+      promoApplyBtn.textContent = 'Applying…';
+      promoStatus.innerHTML = '';
+      try {
+        var data = await initCheckout(packIndex, undefined, code);
+        clientSecret = data.clientSecret;
+        discountInfo = data.discount || null;
+        pack = data.packs[packIndex - 1];
+        currentPromoCode = code;
+
+        mountPaymentElement(clientSecret);
+        updatePriceDisplay(pack, discountInfo);
+        setSubmitButton(submitBtn, pack, discountInfo);
+
+        if (discountInfo) {
+          promoStatus.innerHTML = '<p style="color:#4CAF50;font-size:0.85rem;margin:4px 0 0">Promo applied: ' + discountInfo.label + '</p>';
+          promoInput.disabled = true;
+          promoApplyBtn.textContent = 'Applied';
+        } else {
+          promoStatus.innerHTML = '<p style="color:#ff6b6b;font-size:0.85rem;margin:4px 0 0">Code could not be applied.</p>';
+        }
+      } catch (err) {
+        promoStatus.innerHTML = '<p style="color:#ff6b6b;font-size:0.85rem;margin:4px 0 0">' + err.message + '</p>';
+        promoApplyBtn.disabled = false;
+        promoApplyBtn.textContent = 'Apply';
+      }
+    });
+
+    try {
+      mountPaymentElement(clientSecret);
       resultEl.innerHTML = '';
 
       form.addEventListener('submit', async function (e) {
@@ -136,14 +199,14 @@ description: "Complete your preorder for Nimble Climbing Sticks"
         if (!email || !validateEmail(email)) {
           showError(resultEl, 'Please enter a valid email address so we can send your receipt.');
           emailInput.focus();
-          setSubmitButton(submitBtn, pack);
+          setSubmitButton(submitBtn, pack, discountInfo);
           return;
         }
 
         var fields = getShippingFields();
         if (!fields.name || !fields.address || !fields.city || !fields.state || !fields.zip) {
           showError(resultEl, 'Please fill in all required shipping fields.');
-          setSubmitButton(submitBtn, pack);
+          setSubmitButton(submitBtn, pack, discountInfo);
           return;
         }
 
@@ -178,14 +241,14 @@ description: "Complete your preorder for Nimble Climbing Sticks"
           var outcome = getConfirmPaymentOutcome(confirmResult);
           if (outcome.type === 'error') {
             showError(resultEl, outcome.message);
-            setSubmitButton(submitBtn, pack);
+            setSubmitButton(submitBtn, pack, discountInfo);
           } else if (outcome.type === 'success') {
             document.getElementById('stripe-payment-element').innerHTML = '';
             renderSuccessConfirmation(form, email);
           }
         } catch (err) {
           showError(resultEl, err.message);
-          setSubmitButton(submitBtn, pack);
+          setSubmitButton(submitBtn, pack, discountInfo);
         }
       });
     } catch (err) {

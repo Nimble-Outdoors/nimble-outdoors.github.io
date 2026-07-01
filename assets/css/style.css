@@ -1685,6 +1685,43 @@ a {
   color: var(--color-text);
 }
 
+/* Promo Code Section */
+.promo-section {
+  margin-bottom: 24px;
+}
+
+.promo-input-row {
+  display: flex;
+  gap: 10px;
+}
+
+.promo-input-row input {
+  flex: 1;
+}
+
+.btn-secondary {
+  background: #333;
+  color: var(--color-text);
+  border: 1px solid #555;
+  padding: 12px 20px;
+  border-radius: 4px;
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.25s ease;
+  white-space: nowrap;
+}
+
+.btn-secondary:hover {
+  background: #444;
+}
+
+.btn-secondary:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
 /* Checkout Responsive */
 @media (max-width: 900px) {
   .checkout-grid {

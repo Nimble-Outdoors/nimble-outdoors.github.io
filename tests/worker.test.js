@@ -241,6 +241,224 @@ describe('POST /api/init-checkout', () => {
     const data = await res.json()
     expect(data.error).toBe('API error')
   })
+
+  describe('promo code', () => {
+    function promoListResponse(couponId) {
+      return {
+        data: [{
+          id: 'pc_mock',
+          code: 'TESTCODE',
+          active: true,
+          promotion: { coupon: couponId, type: 'coupon' },
+          restrictions: { first_time_transaction: false, minimum_amount: null, minimum_amount_currency: null },
+        }],
+      }
+    }
+
+    function couponResponse(percentOff, amountOff) {
+      return { id: 'co_mock', valid: true, percent_off: percentOff, amount_off: amountOff }
+    }
+
+    it('applies percentage discount and passes discounts param', async () => {
+      let piBody = ''
+      globalThis.fetch = vi.fn().mockImplementation(async (url, opts) => {
+        if (url.includes('/prices') && !url.includes('/prices/')) {
+          return { ok: true, json: () => Promise.resolve(pricesListResponse()) }
+        }
+        if (url.includes('/prices/')) {
+          return { ok: true, json: () => Promise.resolve(priceResponse(24900)) }
+        }
+        if (url.includes('/promotion_codes')) {
+          return { ok: true, json: () => Promise.resolve(promoListResponse('co_mock')) }
+        }
+        if (url.includes('/coupons/')) {
+          return { ok: true, json: () => Promise.resolve(couponResponse(10, null)) }
+        }
+        piBody = opts.body
+        return { ok: true, json: () => Promise.resolve(piResponse('pi_s')) }
+      })
+
+      const req = new Request('https://nimble-stripe.example.workers.dev/api/init-checkout', {
+        method: 'POST',
+        body: JSON.stringify({ packIndex: 4, promoCode: 'SAVE10' }),
+      })
+      const res = await worker.fetch(req)
+      const data = await res.json()
+
+      expect(res.status).toBe(200)
+      expect(piBody).toContain('amount=22410')
+      expect(data.discount).toEqual({ amount: 24.9, label: '10% off', code: 'SAVE10' })
+    })
+
+    it('applies fixed amount discount', async () => {
+      let piBody = ''
+      globalThis.fetch = vi.fn().mockImplementation(async (url, opts) => {
+        if (url.includes('/prices') && !url.includes('/prices/')) {
+          return { ok: true, json: () => Promise.resolve(pricesListResponse()) }
+        }
+        if (url.includes('/prices/')) {
+          return { ok: true, json: () => Promise.resolve(priceResponse(29900)) }
+        }
+        if (url.includes('/promotion_codes')) {
+          return { ok: true, json: () => Promise.resolve(promoListResponse('co_mock')) }
+        }
+        if (url.includes('/coupons/')) {
+          return { ok: true, json: () => Promise.resolve(couponResponse(null, 5000)) }
+        }
+        piBody = opts.body
+        return { ok: true, json: () => Promise.resolve(piResponse('pi_s')) }
+      })
+
+      const req = new Request('https://nimble-stripe.example.workers.dev/api/init-checkout', {
+        method: 'POST',
+        body: JSON.stringify({ packIndex: 5, promoCode: 'FLAT50' }),
+      })
+      const res = await worker.fetch(req)
+      const data = await res.json()
+
+      expect(res.status).toBe(200)
+      expect(piBody).toContain('amount=24900')
+      expect(data.discount).toEqual({ amount: 50, label: '$50.00 off', code: 'FLAT50' })
+    })
+
+    it('returns 400 for invalid promo code', async () => {
+      globalThis.fetch = vi.fn().mockImplementation(async (url, opts) => {
+        if (url.includes('/prices') && !url.includes('/prices/')) {
+          return { ok: true, json: () => Promise.resolve(pricesListResponse()) }
+        }
+        if (url.includes('/prices/')) {
+          return { ok: true, json: () => Promise.resolve(priceResponse(24900)) }
+        }
+        if (url.includes('/promotion_codes')) {
+          return { ok: true, json: () => Promise.resolve({ data: [] }) }
+        }
+        return { ok: true, json: () => Promise.resolve(piResponse('pi_s')) }
+      })
+
+      const req = new Request('https://nimble-stripe.example.workers.dev/api/init-checkout', {
+        method: 'POST',
+        body: JSON.stringify({ packIndex: 4, promoCode: 'BADCODE' }),
+      })
+      const res = await worker.fetch(req)
+
+      expect(res.status).toBe(400)
+      const data = await res.json()
+      expect(data.error).toBe('Invalid or expired promo code.')
+    })
+
+    it('returns 400 when promotion.coupon is missing', async () => {
+      globalThis.fetch = vi.fn().mockImplementation(async (url, opts) => {
+        if (url.includes('/prices') && !url.includes('/prices/')) {
+          return { ok: true, json: () => Promise.resolve(pricesListResponse()) }
+        }
+        if (url.includes('/prices/')) {
+          return { ok: true, json: () => Promise.resolve(priceResponse(24900)) }
+        }
+        if (url.includes('/promotion_codes')) {
+          return { ok: true, json: () => Promise.resolve({
+            data: [{ id: 'pc_mock', code: 'NOCOUPON', active: true, promotion: { type: 'coupon' } }],
+          })}
+        }
+        return { ok: true, json: () => Promise.resolve(piResponse('pi_s')) }
+      })
+
+      const req = new Request('https://nimble-stripe.example.workers.dev/api/init-checkout', {
+        method: 'POST',
+        body: JSON.stringify({ packIndex: 4, promoCode: 'NOCOUPON' }),
+      })
+      const res = await worker.fetch(req)
+
+      expect(res.status).toBe(400)
+      const data = await res.json()
+      expect(data.error).toBe('Invalid or expired promo code.')
+    })
+
+    it('returns 400 when coupon is invalid', async () => {
+      globalThis.fetch = vi.fn().mockImplementation(async (url, opts) => {
+        if (url.includes('/prices') && !url.includes('/prices/')) {
+          return { ok: true, json: () => Promise.resolve(pricesListResponse()) }
+        }
+        if (url.includes('/prices/')) {
+          return { ok: true, json: () => Promise.resolve(priceResponse(24900)) }
+        }
+        if (url.includes('/promotion_codes')) {
+          return { ok: true, json: () => Promise.resolve(promoListResponse('co_mock')) }
+        }
+        if (url.includes('/coupons/')) {
+          return { ok: true, json: () => Promise.resolve({ id: 'co_mock', valid: false }) }
+        }
+        return { ok: true, json: () => Promise.resolve(piResponse('pi_s')) }
+      })
+
+      const req = new Request('https://nimble-stripe.example.workers.dev/api/init-checkout', {
+        method: 'POST',
+        body: JSON.stringify({ packIndex: 4, promoCode: 'INVALID' }),
+      })
+      const res = await worker.fetch(req)
+
+      expect(res.status).toBe(400)
+      const data = await res.json()
+      expect(data.error).toBe('Invalid or expired promo code.')
+    })
+
+    it('ignores empty promoCode string', async () => {
+      let piBody = ''
+      globalThis.fetch = vi.fn().mockImplementation(async (url, opts) => {
+        if (url.includes('/prices') && !url.includes('/prices/')) {
+          return { ok: true, json: () => Promise.resolve(pricesListResponse()) }
+        }
+        if (url.includes('/prices/')) {
+          return { ok: true, json: () => Promise.resolve(priceResponse(24900)) }
+        }
+        if (url.includes('/promotion_codes')) {
+          piBody = 'should_not_be_called'
+          return { ok: true, json: () => Promise.resolve({ data: [] }) }
+        }
+        piBody = opts.body
+        return { ok: true, json: () => Promise.resolve(piResponse('pi_s')) }
+      })
+
+      const req = new Request('https://nimble-stripe.example.workers.dev/api/init-checkout', {
+        method: 'POST',
+        body: JSON.stringify({ packIndex: 4, promoCode: '' }),
+      })
+      const res = await worker.fetch(req)
+      const data = await res.json()
+
+      expect(res.status).toBe(200)
+      expect(piBody).toContain('amount=24900')
+      expect(data.discount).toBeUndefined()
+    })
+
+    it('works alongside email', async () => {
+      let piBody = ''
+      globalThis.fetch = vi.fn().mockImplementation(async (url, opts) => {
+        if (url.includes('/prices') && !url.includes('/prices/')) {
+          return { ok: true, json: () => Promise.resolve(pricesListResponse()) }
+        }
+        if (url.includes('/prices/')) {
+          return { ok: true, json: () => Promise.resolve(priceResponse(24900)) }
+        }
+        if (url.includes('/promotion_codes')) {
+          return { ok: true, json: () => Promise.resolve(promoListResponse('co_mock')) }
+        }
+        if (url.includes('/coupons/')) {
+          return { ok: true, json: () => Promise.resolve(couponResponse(10, null)) }
+        }
+        piBody = opts.body
+        return { ok: true, json: () => Promise.resolve(piResponse('pi_s')) }
+      })
+
+      const req = new Request('https://nimble-stripe.example.workers.dev/api/init-checkout', {
+        method: 'POST',
+        body: JSON.stringify({ packIndex: 4, email: 'buyer@example.com', promoCode: 'SAVE10' }),
+      })
+      await worker.fetch(req)
+
+      expect(piBody).toContain('amount=22410')
+      expect(piBody).toContain('receipt_email=buyer%40example.com')
+    })
+  })
 })
 
 describe('OPTIONS (CORS preflight)', () => {

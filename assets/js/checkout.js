@@ -110,16 +110,21 @@ export function renderSuccessConfirmation(form, email) {
     '</div>'
 }
 
-export function setSubmitButton(submitBtn, pack) {
-  submitBtn.textContent = `Pay $${pack.price.toFixed(2)}`
+export function setSubmitButton(submitBtn, pack, discount) {
+  var price = discount ? pack.price - discount.amount : pack.price;
+  submitBtn.textContent = `Pay $${price.toFixed(2)}`
   submitBtn.disabled = false
 }
 
-export async function initCheckout(packIndex, email) {
+export async function initCheckout(packIndex, email, promoCode) {
   const response = await fetch(`${WORKER_URL}/api/init-checkout`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ packIndex, email: email || undefined }),
+    body: JSON.stringify({
+      packIndex,
+      email: email || undefined,
+      promoCode: promoCode || undefined,
+    }),
   })
   if (!response.ok) {
     const errData = await response.json()

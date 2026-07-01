@@ -1,9 +1,9 @@
 const PRICES_URL = 'https://nimble-stripe.joey-956.workers.dev/api/prices'
 
 export const PACK_DETAILS = [
-  { sku: "pack-3", name: "3-Pack", price: 199, weight: "2 lb 7 oz", sticks: 3, climb: "~12 ft", desc: "Lightest setup. Perfect for run-and-gun hunts." },
-  { sku: "pack-4", name: "4-Pack", price: 249, weight: "3 lb 4 oz", sticks: 4, climb: "~16 ft", desc: "The sweet spot. Enough height for most setups." },
-  { sku: "pack-5", name: "5-Pack", price: 299, weight: "4 lb 1 oz", sticks: 5, climb: "~20 ft", desc: "Maximum reach. For hunters who want every option." },
+  { sku: "pack-3", name: "3-Pack", weight: "2 lb 7 oz", sticks: 3, climb: "~12 ft", desc: "Lightest setup. Perfect for run-and-gun hunts." },
+  { sku: "pack-4", name: "4-Pack", weight: "3 lb 4 oz", sticks: 4, climb: "~16 ft", desc: "The sweet spot. Enough height for most setups." },
+  { sku: "pack-5", name: "5-Pack", weight: "4 lb 1 oz", sticks: 5, climb: "~20 ft", desc: "Maximum reach. For hunters who want every option." },
 ]
 
 let cachedPacks = null
@@ -19,7 +19,7 @@ export async function fetchPacks() {
   const prices = await response.json()
   cachedPacks = PACK_DETAILS.map(detail => {
     const match = prices.find(p => p.sku === detail.sku)
-    if (!match) return detail
+    if (!match) throw new Error('Pricing unavailable for ' + detail.name)
     return { ...detail, price: match.price, stripePriceId: match.stripePriceId }
   })
   return cachedPacks

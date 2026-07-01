@@ -106,7 +106,7 @@ export default {
     // One-shot: fetch prices + create PaymentIntent for the selected pack
     if (request.method === 'POST' && url.pathname === '/api/init-checkout') {
       try {
-        const { packIndex, email } = await request.json();
+        const { packIndex, email, promoCode } = await request.json();
         const secret = env.STRIPE_SECRET_KEY || globalThis.STRIPE_SECRET_KEY;
 
         const data = await stripeApi('/prices?active=true&expand[]=data.product&limit=10', secret);
@@ -130,8 +130,62 @@ export default {
         }
 
         const stripePrice = await stripeApi('/prices/' + pack.stripePriceId, secret);
-        const cents = stripePrice.unit_amount;
+        let cents = stripePrice.unit_amount;
         const description = 'Nimble Climbing Sticks — ' + pack.name;
+
+        let discountInfo = null;
+        let promoId = null;
+
+        if (promoCode) {
+          const trimmedCode = promoCode.trim();
+          if (trimmedCode) {
+            const promoData = await stripeApi(
+              `/promotion_codes?code=${encodeURIComponent(trimmedCode)}&active=true`,
+              secret
+            );
+
+            if (promoData.data.length === 0) {
+              return new Response(JSON.stringify({ error: 'Invalid or expired promo code.' }), {
+                status: 400,
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+              });
+            }
+
+            const promo = promoData.data[0];
+            const couponId = promo.promotion?.coupon || promo.coupon;
+
+            if (!couponId || typeof couponId === 'object') {
+              return new Response(JSON.stringify({ error: 'Invalid or expired promo code.' }), {
+                status: 400,
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+              });
+            }
+
+            const coupon = await stripeApi('/coupons/' + couponId, secret);
+
+            if (!coupon || !coupon.valid) {
+              return new Response(JSON.stringify({ error: 'Invalid or expired promo code.' }), {
+                status: 400,
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+              });
+            }
+
+            let discountCents = 0;
+            if (coupon.percent_off) {
+              discountCents = Math.round(cents * coupon.percent_off / 100);
+              discountInfo = { amount: discountCents / 100, label: `${coupon.percent_off}% off` };
+            } else if (coupon.amount_off) {
+              discountCents = coupon.amount_off;
+              discountInfo = { amount: discountCents / 100, label: `$${(coupon.amount_off / 100).toFixed(2)} off` };
+            }
+
+            if (discountInfo) {
+              cents -= discountCents;
+              promoId = promo.id;
+              discountInfo.code = trimmedCode;
+            }
+          }
+        }
 
         const body = new URLSearchParams({
           amount: String(cents),
@@ -146,7 +200,11 @@ export default {
           body: body.toString(),
         });
 
-        return new Response(JSON.stringify({ packs, clientSecret: pi.client_secret }), {
+        return new Response(JSON.stringify({
+          packs,
+          clientSecret: pi.client_secret,
+          ...(discountInfo ? { discount: discountInfo } : {}),
+        }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       } catch (err) {
