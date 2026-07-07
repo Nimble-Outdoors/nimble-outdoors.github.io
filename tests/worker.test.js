@@ -570,7 +570,7 @@ describe('confirmationPage helper', () => {
     const html = await res.text()
 
     expect(html).toContain('href="/"')
-    expect(html).toContain('joey@nimbleoutdoorsllc.com')
+    expect(html).toContain('joey@nimblehunting.com')
   })
 })
 

@@ -26,7 +26,7 @@ describe('getFormspreeStatus', () => {
     const res = { ok: false }
     const data = { error: 'Something broke' }
     expect(getFormspreeStatus(res, data)).toBe(
-      'Oops! Something went wrong. Try just emailing joey@nimbleoutdoorsllc.com'
+      'Oops! Something went wrong. Try just emailing joey@nimblehunting.com'
     )
   })
 
@@ -100,7 +100,7 @@ describe('initSignupForm', () => {
 
     await vi.waitFor(() => {
       expect(document.getElementById('waitingListFormStatus').innerHTML).toBe(
-        'Oops! Something went wrong. Try just emailing joey@nimbleoutdoorsllc.com'
+        'Oops! Something went wrong. Try just emailing joey@nimblehunting.com'
       )
     })
   })
@@ -114,7 +114,7 @@ describe('initSignupForm', () => {
 
     await vi.waitFor(() => {
       expect(document.getElementById('waitingListFormStatus').innerHTML).toBe(
-        'Oops! Something went wrong. Try just emailing joey@nimbleoutdoorsllc.com'
+        'Oops! Something went wrong. Try just emailing joey@nimblehunting.com'
       )
     })
   })

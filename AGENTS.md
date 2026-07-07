@@ -1,6 +1,6 @@
 # AGENTS.md — Nimble Outdoors
 
-This is a single-page Jekyll 4 site for nimbleoutdoorsllc.com — a product landing page for hunting climbing sticks.
+This is a single-page Jekyll 4 site for nimblehunting.com — a product landing page for hunting climbing sticks.
 
 ## Dev commands
 

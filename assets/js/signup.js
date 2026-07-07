@@ -3,7 +3,7 @@ export function getFormspreeStatus(response, data) {
   if (Object.hasOwn(data, 'errors')) {
     return data.errors.map(error => error["message"]).join(", ")
   }
-  return "Oops! Something went wrong. Try just emailing joey@nimbleoutdoorsllc.com"
+  return "Oops! Something went wrong. Try just emailing joey@nimblehunting.com"
 }
 
 export function initSignupForm() {
@@ -32,7 +32,7 @@ export function initSignupForm() {
         })
       }
     }).catch(() => {
-      status.innerHTML = "Oops! Something went wrong. Try just emailing joey@nimbleoutdoorsllc.com"
+      status.innerHTML = "Oops! Something went wrong. Try just emailing joey@nimblehunting.com"
     })
   }
 

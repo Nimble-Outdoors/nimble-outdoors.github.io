@@ -56,7 +56,7 @@ function confirmationPage(success, data) {
   <div class="card">
     <h1>Payment Failed</h1>
     <p>${data.last_payment_error?.message || 'Your payment could not be processed.'}</p>
-    <p>Please try again or contact us at joey@nimbleoutdoorsllc.com.</p>
+    <p>Please try again or contact us at joey@nimblehunting.com.</p>
     <a href="/">Return to Nimble Outdoors</a>
   </div>
 </body>
