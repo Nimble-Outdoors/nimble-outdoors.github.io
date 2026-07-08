@@ -10,11 +10,12 @@ hero:
 <script src="https://www.google.com/recaptcha/api.js?render=6Lfr-agpAAAAAAfwGOtDvgX6cI0woP5J9VPMui7C"></script>
 
 <section class="hero">
-  <div class="hero-title">
+  <picture class="hero-bg">
+    <source srcset="/assets/images/hero-1.webp" type="image/webp">
+    <img src="/assets/images/hero-1.png" alt="" loading="lazy">
+  </picture>
+  <div class="hero-text">
     <h1>{{ page.hero.title }}</h1>
-  </div>
-  <div class="hero-image"></div>
-  <div class="hero-content">
     <p>{{ page.hero.subtitle }}</p>
   </div>
 </section>
