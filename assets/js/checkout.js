@@ -12,6 +12,9 @@ export function getConfirmPaymentOutcome(confirmResult) {
   if (confirmResult.paymentIntent && confirmResult.paymentIntent.status === 'succeeded') {
     return { type: 'success' }
   }
+  if (confirmResult.paymentIntent && confirmResult.paymentIntent.last_payment_error) {
+    return { type: 'error', message: confirmResult.paymentIntent.last_payment_error.message }
+  }
   return { type: 'requires_action' }
 }
 

@@ -11,3 +11,4 @@ _site/
 *.key
 # Node.js dev dependencies (vitest, jsdom)
 node_modules/
+test-results/

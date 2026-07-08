@@ -26,7 +26,7 @@ description: "Complete your preorder for Nimble Climbing Sticks"
       </div>
       <div class="checkout-payment">
         <form id="checkoutForm">
-          <div id="checkoutResults"></div>
+
 
           <div class="form-group">
             <label for="email">Email Address</label>
@@ -74,6 +74,7 @@ description: "Complete your preorder for Nimble Climbing Sticks"
             <div id="promo-status"></div>
           </div>
 
+          <div id="paymentError"></div>
           <div id="stripe-payment-element" style="margin-bottom:24px">
           </div>
 
@@ -97,7 +98,7 @@ description: "Complete your preorder for Nimble Climbing Sticks"
   } from '/assets/js/checkout.js'
 
   async function init() {
-    var resultEl = document.getElementById("checkoutResults");
+    var paymentErrorEl = document.getElementById("paymentError");
     var submitBtn = document.getElementById("submit-btn");
     var form = document.getElementById("checkoutForm");
 
@@ -105,7 +106,24 @@ description: "Complete your preorder for Nimble Climbing Sticks"
     var packIndex = parseInt(params.get("pack")) || 2;
     if (packIndex < 1 || packIndex > PACK_DETAILS.length) packIndex = 2;
 
-    resultEl.innerHTML = '<p style="color:#ccc">Loading…</p>';
+    var redirectStatus = params.get('redirect_status');
+    var paymentIntentClientSecret = params.get('payment_intent_client_secret');
+
+    if (paymentIntentClientSecret) {
+      var stripe = Stripe(STRIPE_PK);
+      stripe.retrievePaymentIntent(paymentIntentClientSecret).then(function (result) {
+        if (result.paymentIntent && result.paymentIntent.status === 'succeeded') {
+          document.getElementById('stripe-payment-element').innerHTML = '';
+          renderSuccessConfirmation(form, result.paymentIntent.receipt_email || 'your email');
+        } else if (redirectStatus && redirectStatus !== 'succeeded') {
+          showError(paymentErrorEl, 'Payment could not be processed. Please try again with a different card.');
+        }
+        history.replaceState({}, '', window.location.pathname + '?pack=' + packIndex);
+      });
+      return;
+    }
+
+    paymentErrorEl.innerHTML = '<p style="color:#ccc">Loading…</p>';
     submitBtn.disabled = true;
 
     var packs, clientSecret, discountInfo;
@@ -114,7 +132,7 @@ description: "Complete your preorder for Nimble Climbing Sticks"
       packs = mergePackData(data.packs);
       clientSecret = data.clientSecret;
     } catch (err) {
-      showError(resultEl, 'Pricing currently unavailable. Please try again later.');
+      showError(paymentErrorEl, 'Pricing currently unavailable. Please try again later.');
       return;
     }
 
@@ -137,7 +155,7 @@ description: "Complete your preorder for Nimble Climbing Sticks"
 
     setSubmitButton(submitBtn, pack);
 
-    resultEl.innerHTML = '<p style="color:#ccc">Setting up payment form…</p>';
+    paymentErrorEl.innerHTML = '<p style="color:#ccc">Setting up payment form…</p>';
 
     function updatePriceDisplay(pack, discount) {
       var priceEl = document.getElementById("cartPrice");
@@ -191,7 +209,7 @@ description: "Complete your preorder for Nimble Climbing Sticks"
 
     try {
       mountPaymentElement(clientSecret);
-      resultEl.innerHTML = '';
+      paymentErrorEl.innerHTML = '';
 
       form.addEventListener('submit', async function (e) {
         e.preventDefault();
@@ -200,25 +218,19 @@ description: "Complete your preorder for Nimble Climbing Sticks"
 
         var email = emailInput.value;
         if (!email || !validateEmail(email)) {
-          showError(resultEl, 'Please enter a valid email address so we can send your receipt.');
+          showError(paymentErrorEl, 'Please enter a valid email address so we can send your receipt.');
           emailInput.focus();
           setSubmitButton(submitBtn, pack, discountInfo);
           return;
         }
 
         var fields = getShippingFields();
-        if (!fields.name || !fields.address || !fields.city || !fields.state || !fields.zip) {
-          showError(resultEl, 'Please fill in all required shipping fields.');
-          setSubmitButton(submitBtn, pack, discountInfo);
-          return;
-        }
-
         try {
           var confirmResult = await stripe.confirmPayment({
             elements: elements,
             redirect: 'if_required',
             confirmParams: {
-              return_url: WORKER_URL + '/confirm',
+              return_url: window.location.origin + window.location.pathname + '?pack=' + packIndex,
               receipt_email: email,
               payment_method_data: {
                 billing_details: {
@@ -243,19 +255,21 @@ description: "Complete your preorder for Nimble Climbing Sticks"
 
           var outcome = getConfirmPaymentOutcome(confirmResult);
           if (outcome.type === 'error') {
-            showError(resultEl, outcome.message);
             setSubmitButton(submitBtn, pack, discountInfo);
           } else if (outcome.type === 'success') {
             document.getElementById('stripe-payment-element').innerHTML = '';
             renderSuccessConfirmation(form, email);
+          } else {
+            showError(paymentErrorEl, 'Payment could not be completed. Please try again.');
+            setSubmitButton(submitBtn, pack, discountInfo);
           }
         } catch (err) {
-          showError(resultEl, err.message);
+          showError(paymentErrorEl, err.message);
           setSubmitButton(submitBtn, pack, discountInfo);
         }
       });
     } catch (err) {
-      showError(resultEl, err.message);
+      showError(paymentErrorEl, err.message);
     }
   }
 

@@ -441,11 +441,10 @@ a {
   max-width: 120px;
 }
 
-#checkoutResults {
-  margin-bottom: 20px;
+#paymentError {
+  margin-bottom: 12px;
   font-family: var(--font-body);
   font-size: 0.9rem;
-  color: var(--color-text-light);
 }
 
 @media (max-width: 768px) {
