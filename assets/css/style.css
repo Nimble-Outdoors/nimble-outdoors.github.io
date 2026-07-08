@@ -133,24 +133,6 @@ a {
   color: var(--color-secondary);
 }
 
-.site-nav {
-  display: flex;
-  gap: 30px;
-}
-
-.site-nav a {
-  font-family: var(--font-heading);
-  font-weight: 600;
-  font-size: 0.95rem;
-  color: var(--color-text);
-  transition: color 0.3s ease;
-}
-
-.site-nav a:hover,
-.site-nav a.active {
-  color: var(--color-primary);
-}
-
 /* Hero */
 .hero {
   height: 100vh;
@@ -275,6 +257,50 @@ a {
 
 .cta-section .btn:hover {
   background-color: var(--color-primary-dark);
+}
+
+/* Nav Sections (Apple-style navigation in page flow) */
+.nav-section {
+  padding: 120px 0;
+  background: var(--color-bg);
+  text-align: center;
+}
+
+.nav-section--alt {
+  background: var(--color-bg-alt);
+}
+
+.nav-section h2 {
+  font-size: 3rem;
+  margin-bottom: 16px;
+  color: var(--color-text);
+}
+
+.nav-section p {
+  font-size: 1.25rem;
+  color: var(--color-text-light);
+  max-width: 560px;
+  margin: 0 auto 32px;
+  line-height: 1.5;
+}
+
+.nav-section .btn {
+  font-size: 1.1rem;
+  padding: 14px 40px;
+}
+
+@media (max-width: 768px) {
+  .nav-section {
+    padding: 80px 0;
+  }
+
+  .nav-section h2 {
+    font-size: 2.25rem;
+  }
+
+  .nav-section p {
+    font-size: 1.05rem;
+  }
 }
 
 .signup-form {
@@ -474,15 +500,6 @@ a {
 /* Responsive */
 
 @media (max-width: 768px) {
-  .site-header .container {
-    flex-direction: column;
-    gap: 15px;
-  }
-
-  .site-nav {
-    gap: 20px;
-  }
-
   .hero-content h1 {
     font-size: 2.5rem;
     color: red;
