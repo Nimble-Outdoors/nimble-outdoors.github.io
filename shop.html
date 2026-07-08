@@ -30,7 +30,7 @@ description: "Ultra lightweight carbon fiber climbing sticks. Choose your pack."
     <div class="shop-c-display" id="packDisplay">
       <div class="shop-c-display-visual">
         <div class="shop-c-display-sticks" id="displaySticks">
-          {% for i in (1..4) %}
+          {% for i in (1..site.data.packs[1].sticks) %}
           <span class="shop-c-display-stick"></span>
           {% endfor %}
         </div>
@@ -45,19 +45,19 @@ description: "Ultra lightweight carbon fiber climbing sticks. Choose your pack."
         <p class="shop-c-display-desc" id="packDesc"></p>
         <div class="shop-c-display-stats">
           <div class="shop-c-stat">
-            <span class="shop-c-stat-value" id="packSticks">4</span>
+            <span class="shop-c-stat-value" id="packSticks">{{ site.data.packs[1].sticks }}</span>
             <span class="shop-c-stat-label">Sticks</span>
           </div>
           <div class="shop-c-stat">
-            <span class="shop-c-stat-value" id="packWeight">3 lb 4 oz</span>
+            <span class="shop-c-stat-value" id="packWeight">{{ site.data.packs[1].weight }}</span>
             <span class="shop-c-stat-label">Total Weight</span>
           </div>
           <div class="shop-c-stat">
-            <span class="shop-c-stat-value" id="packClimb">~16 ft</span>
+            <span class="shop-c-stat-value" id="packClimb">{{ site.data.packs[1].climb }}</span>
             <span class="shop-c-stat-label">Climb Height</span>
           </div>
         </div>
-        <p class="shop-c-display-price" id="packPrice">$249</p>
+        <p class="shop-c-display-price loading-shimmer loading-shimmer--lg" id="packPrice"></p>
         <a href="/checkout.html?pack=2" class="btn btn-primary" id="preorderLink1">Preorder Now</a>
       </div>
     </div>
@@ -128,7 +128,7 @@ description: "Ultra lightweight carbon fiber climbing sticks. Choose your pack."
       <tr><td>Stand-off</td><td>5 inches</td></tr>
       <tr><td>Material</td><td>Carbon fiber composite</td></tr>
       <tr><td>Attachment</td><td>Daisy chain rope</td></tr>
-      <tr><td>Made In</td><td>USA — Osseo, Wisconsin</td></tr>
+
     </table>
   </div>
 </section>
@@ -138,17 +138,18 @@ description: "Ultra lightweight carbon fiber climbing sticks. Choose your pack."
     <h2>Ready to climb lighter?</h2>
     <div class="shop-c-cta-selector">
       <div class="shop-c-cta-toggles" id="ctaToggles">
-        <button class="shop-c-toggle shop-c-toggle--sm" data-index="0">3-Pack — $199</button>
-        <button class="shop-c-toggle shop-c-toggle--sm active" data-index="1">4-Pack — $249</button>
-        <button class="shop-c-toggle shop-c-toggle--sm" data-index="2">5-Pack — $299</button>
+        <button class="shop-c-toggle shop-c-toggle--sm" data-index="0">3-Pack</button>
+        <button class="shop-c-toggle shop-c-toggle--sm active" data-index="1">4-Pack</button>
+        <button class="shop-c-toggle shop-c-toggle--sm" data-index="2">5-Pack</button>
       </div>
     </div>
-    <p class="shop-c-cta-price" id="ctaPrice">$249</p>
+    <p class="shop-c-cta-price loading-shimmer loading-shimmer--lg" id="ctaPrice"></p>
     <a href="/checkout.html?pack=2" class="btn btn-primary" id="preorderLink2">Preorder Now</a>
     <p class="shop-c-cta-note">Questions? Call or text Joey — 715-530-2464</p>
   </div>
 </section>
 
+<script id="pack-data" type="application/json">{{ site.data.packs | jsonify }}</script>
 <script type="module">
   import { fetchPacks, renderStickIcons } from '/assets/js/packs.js'
 
@@ -169,7 +170,9 @@ description: "Ultra lightweight carbon fiber climbing sticks. Choose your pack."
     document.getElementById("packWeight").textContent = pack.weight;
     document.getElementById("packClimb").textContent = pack.climb;
     document.getElementById("packPrice").textContent = "$" + pack.price;
+    document.getElementById("packPrice").classList.remove("loading-shimmer", "loading-shimmer--lg");
     document.getElementById("ctaPrice").textContent = "$" + pack.price;
+    document.getElementById("ctaPrice").classList.remove("loading-shimmer", "loading-shimmer--lg");
     document.getElementById("preorderLink1").href = "/checkout.html?pack=" + (index + 1);
     document.getElementById("preorderLink2").href = "/checkout.html?pack=" + (index + 1);
 
@@ -190,7 +193,9 @@ description: "Ultra lightweight carbon fiber climbing sticks. Choose your pack."
     selectPack(1);
   }).catch(function() {
     document.getElementById("packPrice").textContent = 'Unavailable';
+    document.getElementById("packPrice").classList.remove("loading-shimmer", "loading-shimmer--lg");
     document.getElementById("ctaPrice").textContent = 'Unavailable';
+    document.getElementById("ctaPrice").classList.remove("loading-shimmer", "loading-shimmer--lg");
     document.querySelectorAll(".shop-c-toggle--sm").forEach(function(el) {
       el.textContent = 'Unavailable';
     });

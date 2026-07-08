@@ -3,8 +3,9 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import { PACK_DETAILS } from '../assets/js/pack-details.js'
 import {
-  PACK_DETAILS, fetchPacks, resetPacksCache,
+  fetchPacks, resetPacksCache,
   getSpecsHtml, renderStickIcons,
 } from '../assets/js/packs.js'
 
@@ -125,7 +126,6 @@ describe('getSpecsHtml', () => {
     expect(html).toContain('3 lb 4 oz')
     expect(html).toContain('~16 ft')
     expect(html).toContain('Daisy chain rope attachment')
-    expect(html).toContain('Made in Osseo, Wisconsin')
     expect(html).toMatch(/^<li>/)
     expect(html).toMatch(/<\/li>$/u)
   })

@@ -28,7 +28,7 @@ Push to `main` → GitHub Actions builds with `bundle exec jekyll build` and dep
 
 - `index.html` — the landing page (layout: `default`, hero + features + email signup CTA)
 - `404.html` — custom 404
-- `shop-c.html` — product page with pack selector, links to checkout
+- `shop.html` — product page with pack selector, links to checkout
 - `checkout.html` — checkout page (pack chosen via `?pack=N` query param)
 - `checkout-b.html` — checkout page with inline pack selector
 - `_layouts/default.html` — no nav header, just footer

@@ -7,7 +7,7 @@ import {
   getConfirmPaymentOutcome, validateEmail, getShippingFields,
   buildShippingAddress, createPaymentAppearance, createPaymentFields,
   createPaymentFieldsDefault, renderSuccessConfirmation, setSubmitButton,
-  showError, PACK_DETAILS,
+  showError, mergePackData, PACK_DETAILS,
   initCheckout, renderStickIcons, getSpecsHtml
 } from '../assets/js/checkout.js'
 
@@ -262,6 +262,66 @@ describe('PACK_DETAILS', () => {
     expect(PACK_DETAILS[0].sticks).toBe(3)
     expect(PACK_DETAILS[0].weight).toBe('2 lb 7 oz')
     expect(PACK_DETAILS[0].climb).toBe('~12 ft')
+  })
+})
+
+describe('mergePackData', () => {
+  it('merges API packs with local PACK_DETAILS by index', () => {
+    const apiPacks = [
+      { price: 199, stripePriceId: 'price_a' },
+      { price: 249, stripePriceId: 'price_b' },
+      { price: 299, stripePriceId: 'price_c' },
+    ]
+    const result = mergePackData(apiPacks)
+
+    expect(result).toHaveLength(3)
+    expect(result[0].sku).toBe('pack-3')
+    expect(result[0].price).toBe(199)
+    expect(result[0].stripePriceId).toBe('price_a')
+    expect(result[0].sticks).toBe(3)
+    expect(result[0].weight).toBe('2 lb 7 oz')
+    expect(result[1].price).toBe(249)
+    expect(result[1].sticks).toBe(4)
+    expect(result[2].price).toBe(299)
+    expect(result[2].sticks).toBe(5)
+  })
+
+  it('overrides name from API if present', () => {
+    const apiPacks = [
+      { price: 199, stripePriceId: 'price_a', name: 'Custom 3-Pack' },
+      { price: 249, stripePriceId: 'price_b' },
+      { price: 299, stripePriceId: 'price_c' },
+    ]
+    const result = mergePackData(apiPacks)
+    expect(result[0].name).toBe('Custom 3-Pack')
+  })
+
+  it('handles empty API packs', () => {
+    const result = mergePackData([])
+    expect(result).toEqual([])
+  })
+
+  it('handles fewer API packs than details', () => {
+    const apiPacks = [
+      { price: 199, stripePriceId: 'price_a' },
+    ]
+    const result = mergePackData(apiPacks)
+    expect(result).toHaveLength(1)
+    expect(result[0].sku).toBe('pack-3')
+    expect(result[0].price).toBe(199)
+  })
+
+  it('handles more API packs than details', () => {
+    const apiPacks = [
+      { price: 199, stripePriceId: 'price_a' },
+      { price: 249, stripePriceId: 'price_b' },
+      { price: 299, stripePriceId: 'price_c' },
+      { price: 399, stripePriceId: 'price_d' },
+    ]
+    const result = mergePackData(apiPacks)
+    expect(result).toHaveLength(4)
+    expect(result[3].price).toBe(399)
+    expect(result[3].sku).toBeUndefined()
   })
 })
 

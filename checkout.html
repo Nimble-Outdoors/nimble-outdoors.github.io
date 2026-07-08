@@ -13,14 +13,13 @@ description: "Complete your preorder for Nimble Climbing Sticks"
         <div class="checkout-product-card">
           <div class="checkout-stick-visual" id="cartSticks"></div>
           <div class="checkout-product-info">
-            <h4 id="cartName">Nimble Climbing Sticks — 4-Pack</h4>
-            <p class="checkout-product-price" id="cartPrice">$249.00</p>
+            <h4 id="cartName">Nimble Climbing Sticks — {{ site.data.packs[1].name }}</h4>
+            <p class="checkout-product-price loading-shimmer loading-shimmer--lg" id="cartPrice"></p>
             <ul class="checkout-product-specs" id="cartSpecs">
-              <li><strong>4</strong> carbon fiber sticks</li>
-              <li><strong>3 lb 4 oz</strong> total weight</li>
-              <li><strong>~16 ft</strong> climb height</li>
+              <li><strong>{{ site.data.packs[1].sticks }}</strong> carbon fiber sticks</li>
+              <li><strong>{{ site.data.packs[1].weight }}</strong> total weight</li>
+              <li><strong>{{ site.data.packs[1].climb }}</strong> climb height</li>
               <li>Daisy chain rope attachment</li>
-              <li>Made in Osseo, Wisconsin</li>
             </ul>
           </div>
         </div>
@@ -79,7 +78,7 @@ description: "Complete your preorder for Nimble Climbing Sticks"
           </div>
 
           <button type="submit" id="submit-btn" class="btn btn-primary">
-            Pay $249.00
+            Pay <span class="loading-shimmer loading-shimmer--btn" id="submitBtnPrice"></span>
           </button>
         </form>
       </div>
@@ -87,10 +86,11 @@ description: "Complete your preorder for Nimble Climbing Sticks"
   </div>
 </section>
 
+<script id="pack-data" type="application/json">{{ site.data.packs | jsonify }}</script>
 <script src="https://js.stripe.com/v3/"></script>
 <script type="module">
   import {
-    WORKER_URL, STRIPE_PK, PACK_DETAILS, getSpecsHtml, renderStickIcons,
+    WORKER_URL, STRIPE_PK, PACK_DETAILS, mergePackData, getSpecsHtml, renderStickIcons,
     getConfirmPaymentOutcome, validateEmail, getShippingFields,
     buildShippingAddress, createPaymentAppearance, createPaymentFields,
     renderSuccessConfirmation, setSubmitButton, initCheckout, showError
@@ -111,7 +111,7 @@ description: "Complete your preorder for Nimble Climbing Sticks"
     var packs, clientSecret, discountInfo;
     try {
       var data = await initCheckout(packIndex);
-      packs = data.packs;
+      packs = mergePackData(data.packs);
       clientSecret = data.clientSecret;
     } catch (err) {
       showError(resultEl, 'Pricing currently unavailable. Please try again later.');
@@ -123,6 +123,7 @@ description: "Complete your preorder for Nimble Climbing Sticks"
     renderStickIcons(document.getElementById("cartSticks"), pack.sticks, "checkout-stick-icon");
     document.getElementById("cartName").textContent = "Nimble Climbing Sticks \u2014 " + pack.name;
     document.getElementById("cartPrice").textContent = "$" + pack.price.toFixed(2);
+    document.getElementById("cartPrice").classList.remove("loading-shimmer", "loading-shimmer--lg");
     if (discountInfo) updatePriceDisplay(pack, discountInfo);
     document.getElementById("cartSpecs").innerHTML = getSpecsHtml(pack);
 
@@ -140,6 +141,7 @@ description: "Complete your preorder for Nimble Climbing Sticks"
 
     function updatePriceDisplay(pack, discount) {
       var priceEl = document.getElementById("cartPrice");
+      priceEl.classList.remove("loading-shimmer", "loading-shimmer--lg");
       if (discount) {
         var discounted = pack.price - discount.amount;
         priceEl.innerHTML = '<span style="text-decoration:line-through;opacity:0.5;margin-right:10px">$' + pack.price.toFixed(2) + '</span> <span style="color:#4CAF50">$' + discounted.toFixed(2) + '</span>';
@@ -165,7 +167,8 @@ description: "Complete your preorder for Nimble Climbing Sticks"
         var data = await initCheckout(packIndex, undefined, code);
         clientSecret = data.clientSecret;
         discountInfo = data.discount || null;
-        pack = data.packs[packIndex - 1];
+        var promoPacks = mergePackData(data.packs);
+        pack = promoPacks[packIndex - 1];
         currentPromoCode = code;
 
         mountPaymentElement(clientSecret);

@@ -6,10 +6,8 @@
     </a>
     <nav class="site-nav">
       <a href="{{ '/' | relative_url }}" {% if page.url == '/' %}class="active"{% endif %}>Home</a>
-      <a href="{{ '/shop-c.html' | relative_url }}" {% if page.url contains 'shop-c' %}class="active"{% endif %}>Shop</a>
-      <a href="{{ '/checkout.html' | relative_url }}" {% if page.url contains 'checkout.html' %}class="active"{% endif %}>Checkout A</a>
-      <a href="{{ '/checkout-b.html' | relative_url }}" {% if page.url contains 'checkout-b' %}class="active"{% endif %}>Checkout B</a>
-      <a href="{{ '/checkout-c.html' | relative_url }}" {% if page.url contains 'checkout-c' %}class="active"{% endif %}>Checkout C</a>
+      <a href="{{ '/shop.html' | relative_url }}" {% if page.url contains 'shop' %}class="active"{% endif %}>Shop</a>
+      <a href="{{ '/checkout.html' | relative_url }}" {% if page.url contains 'checkout.html' %}class="active"{% endif %}>Checkout</a>
     </nav>
   </div>
 </header>

@@ -1,30 +1,9 @@
 export const WORKER_URL = 'https://nimble-stripe.joey-956.workers.dev'
 export const STRIPE_PK = 'pk_test_51TmefYPQzgCkAZkTEqMOAk74sX4NRbrxugEyFFmYPlqqUCvppbFxXz3RTNCvS1ii06Z5rfti3noJO3slzAjPsDQ100YB8gqoXx'
 
-export const PACK_DETAILS = [
-  { sku: "pack-3", name: "3-Pack", weight: "2 lb 7 oz", sticks: 3, climb: "~12 ft", desc: "Lightest setup. Perfect for run-and-gun hunts." },
-  { sku: "pack-4", name: "4-Pack", weight: "3 lb 4 oz", sticks: 4, climb: "~16 ft", desc: "The sweet spot. Enough height for most setups." },
-  { sku: "pack-5", name: "5-Pack", weight: "4 lb 1 oz", sticks: 5, climb: "~20 ft", desc: "Maximum reach. For hunters who want every option." },
-]
-
-export function getSpecsHtml(pack) {
-  return [
-    `<li><strong>${pack.sticks}</strong> carbon fiber sticks</li>`,
-    `<li><strong>${pack.weight}</strong> total weight</li>`,
-    `<li><strong>${pack.climb}</strong> climb height</li>`,
-    `<li>Daisy chain rope attachment</li>`,
-    `<li>Made in Osseo, Wisconsin</li>`,
-  ].join('')
-}
-
-export function renderStickIcons(container, count, className) {
-  container.innerHTML = ''
-  for (let i = 0; i < count; i++) {
-    const s = document.createElement('span')
-    s.className = className
-    container.appendChild(s)
-  }
-}
+export { PACK_DETAILS } from './pack-details.js'
+import { PACK_DETAILS as _PACK_DETAILS } from './pack-details.js'
+export { getSpecsHtml, renderStickIcons } from './packs.js'
 
 export function getConfirmPaymentOutcome(confirmResult) {
   if (confirmResult.error) {
@@ -132,6 +111,13 @@ export async function initCheckout(packIndex, email, promoCode) {
   }
   const data = await response.json()
   return data
+}
+
+export function mergePackData(apiPacks) {
+  return apiPacks.map(function(p, i) {
+    var detail = _PACK_DETAILS[i];
+    return detail ? Object.assign({}, detail, p) : p;
+  });
 }
 
 export function showError(resultEl, message) {
