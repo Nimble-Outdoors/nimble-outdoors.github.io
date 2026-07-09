@@ -17,15 +17,15 @@ afterEach(() => {
 describe('PACK_DETAILS', () => {
   it('has three packs with static specs and no prices', () => {
     expect(PACK_DETAILS).toHaveLength(3)
-    expect(PACK_DETAILS[0].sku).toBe('pack-3')
+    expect(PACK_DETAILS[0].sku).toBe('mach-one-3-pack')
     expect(PACK_DETAILS[0].name).toBe('3-Pack')
     expect(PACK_DETAILS[0].sticks).toBe(3)
     expect(PACK_DETAILS[0].weight).toBe('2 lb 7 oz')
     expect(PACK_DETAILS[0].climb).toBe('~12 ft')
     expect(PACK_DETAILS[0]).not.toHaveProperty('price')
-    expect(PACK_DETAILS[1].sku).toBe('pack-4')
+    expect(PACK_DETAILS[1].sku).toBe('mach-one-4-pack')
     expect(PACK_DETAILS[1].sticks).toBe(4)
-    expect(PACK_DETAILS[2].sku).toBe('pack-5')
+    expect(PACK_DETAILS[2].sku).toBe('mach-one-5-pack')
     expect(PACK_DETAILS[2].sticks).toBe(5)
   })
 })
@@ -35,9 +35,9 @@ describe('resetPacksCache', () => {
     globalThis.fetch = vi.fn().mockResolvedValue({
       ok: true,
       json: () => Promise.resolve([
-        { sku: 'pack-3', price: 495, stripePriceId: 'price_a' },
-        { sku: 'pack-4', price: 590, stripePriceId: 'price_b' },
-        { sku: 'pack-5', price: 750, stripePriceId: 'price_c' },
+        { sku: 'mach-one-3-pack', price: 495, stripePriceId: 'price_a' },
+        { sku: 'mach-one-4-pack', price: 590, stripePriceId: 'price_b' },
+        { sku: 'mach-one-5-pack', price: 750, stripePriceId: 'price_c' },
       ]),
     })
 
@@ -53,9 +53,9 @@ describe('resetPacksCache', () => {
 
 describe('fetchPacks', () => {
   const MOCK_PRICES = [
-    { sku: 'pack-3', price: 495, stripePriceId: 'price_a' },
-    { sku: 'pack-4', price: 590, stripePriceId: 'price_b' },
-    { sku: 'pack-5', price: 750, stripePriceId: 'price_c' },
+    { sku: 'mach-one-3-pack', price: 495, stripePriceId: 'price_a' },
+    { sku: 'mach-one-4-pack', price: 590, stripePriceId: 'price_b' },
+    { sku: 'mach-one-5-pack', price: 750, stripePriceId: 'price_c' },
   ]
 
   it('returns packs with prices merged from API', async () => {
@@ -67,7 +67,7 @@ describe('fetchPacks', () => {
     const packs = await fetchPacks()
 
     expect(packs).toHaveLength(3)
-    expect(packs[0].sku).toBe('pack-3')
+    expect(packs[0].sku).toBe('mach-one-3-pack')
     expect(packs[0].price).toBe(495)
     expect(packs[0].stripePriceId).toBe('price_a')
     expect(packs[0].sticks).toBe(3)
@@ -108,8 +108,8 @@ describe('fetchPacks', () => {
     globalThis.fetch = vi.fn().mockResolvedValue({
       ok: true,
       json: () => Promise.resolve([
-        { sku: 'pack-3', price: 495, stripePriceId: 'price_a' },
-        { sku: 'pack-5', price: 750, stripePriceId: 'price_c' },
+        { sku: 'mach-one-3-pack', price: 495, stripePriceId: 'price_a' },
+        { sku: 'mach-one-5-pack', price: 750, stripePriceId: 'price_c' },
       ]),
     })
 

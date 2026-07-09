@@ -257,7 +257,7 @@ describe('setSubmitButton', () => {
 describe('PACK_DETAILS', () => {
   it('has three packs with static specs and skus', () => {
     expect(PACK_DETAILS).toHaveLength(3)
-    expect(PACK_DETAILS[0].sku).toBe('pack-3')
+    expect(PACK_DETAILS[0].sku).toBe('mach-one-3-pack')
     expect(PACK_DETAILS[0].name).toBe('3-Pack')
     expect(PACK_DETAILS[0].sticks).toBe(3)
     expect(PACK_DETAILS[0].weight).toBe('2 lb 7 oz')
@@ -275,7 +275,7 @@ describe('mergePackData', () => {
     const result = mergePackData(apiPacks)
 
     expect(result).toHaveLength(3)
-    expect(result[0].sku).toBe('pack-3')
+    expect(result[0].sku).toBe('mach-one-3-pack')
     expect(result[0].price).toBe(199)
     expect(result[0].stripePriceId).toBe('price_a')
     expect(result[0].sticks).toBe(3)
@@ -307,7 +307,7 @@ describe('mergePackData', () => {
     ]
     const result = mergePackData(apiPacks)
     expect(result).toHaveLength(1)
-    expect(result[0].sku).toBe('pack-3')
+    expect(result[0].sku).toBe('mach-one-3-pack')
     expect(result[0].price).toBe(199)
   })
 
@@ -337,9 +337,9 @@ describe('initCheckout', () => {
       ok: true,
       json: () => Promise.resolve({
         packs: [
-          { sku: 'pack-3', name: '3-Pack', price: 199, sticks: 3, stripePriceId: 'price_a' },
-          { sku: 'pack-4', name: '4-Pack', price: 249, sticks: 4, stripePriceId: 'price_b' },
-          { sku: 'pack-5', name: '5-Pack', price: 299, sticks: 5, stripePriceId: 'price_c' },
+          { sku: 'mach-one-3-pack', name: '3-Pack', price: 199, sticks: 3, stripePriceId: 'price_a' },
+          { sku: 'mach-one-4-pack', name: '4-Pack', price: 249, sticks: 4, stripePriceId: 'price_b' },
+          { sku: 'mach-one-5-pack', name: '5-Pack', price: 299, sticks: 5, stripePriceId: 'price_c' },
         ],
         clientSecret: 'pi_123_secret_abc',
       }),
@@ -421,9 +421,9 @@ describe('initCheckout', () => {
 describe('checkout init flow integration (jsdom)', () => {
   const MOCK_DATA = {
     packs: [
-      { sku: 'pack-3', name: '3-Pack', price: 199, weight: '2 lb 7 oz', sticks: 3, climb: '~12 ft', desc: '', stripePriceId: 'price_a' },
-      { sku: 'pack-4', name: '4-Pack', price: 249, weight: '3 lb 4 oz', sticks: 4, climb: '~16 ft', desc: '', stripePriceId: 'price_b' },
-      { sku: 'pack-5', name: '5-Pack', price: 299, weight: '4 lb 1 oz', sticks: 5, climb: '~20 ft', desc: '', stripePriceId: 'price_c' },
+      { sku: 'mach-one-3-pack', name: '3-Pack', price: 199, weight: '2 lb 7 oz', sticks: 3, climb: '~12 ft', desc: '', stripePriceId: 'price_a' },
+      { sku: 'mach-one-4-pack', name: '4-Pack', price: 249, weight: '3 lb 4 oz', sticks: 4, climb: '~16 ft', desc: '', stripePriceId: 'price_b' },
+      { sku: 'mach-one-5-pack', name: '5-Pack', price: 299, weight: '4 lb 1 oz', sticks: 5, climb: '~20 ft', desc: '', stripePriceId: 'price_c' },
     ],
     clientSecret: 'pi_123_secret_abc',
   }

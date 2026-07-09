@@ -36,9 +36,9 @@ function piResponse(clientSecret) {
 function pricesListResponse() {
   return {
     data: [
-      { id: 'price_a', type: 'one_time', active: true, unit_amount: 19900, currency: 'usd', product: { id: 'prod_3', active: true, name: 'Mach One 3 Pack', metadata: { sku: 'pack-3' } } },
-      { id: 'price_b', type: 'one_time', active: true, unit_amount: 24900, currency: 'usd', product: { id: 'prod_4', active: true, name: 'Mach One 4 Pack', metadata: { sku: 'pack-4' } } },
-      { id: 'price_c', type: 'one_time', active: true, unit_amount: 29900, currency: 'usd', product: { id: 'prod_5', active: true, name: 'Mack One 5 Pack', metadata: { sku: 'pack-5' } } },
+      { id: 'price_a', type: 'one_time', active: true, unit_amount: 19900, currency: 'usd', product: { id: 'prod_3', active: true, name: 'Mach One 3 Pack', metadata: { sku: 'mach-one-3-pack' } } },
+      { id: 'price_b', type: 'one_time', active: true, unit_amount: 24900, currency: 'usd', product: { id: 'prod_4', active: true, name: 'Mach One 4 Pack', metadata: { sku: 'mach-one-4-pack' } } },
+      { id: 'price_c', type: 'one_time', active: true, unit_amount: 29900, currency: 'usd', product: { id: 'prod_5', active: true, name: 'Mack One 5 Pack', metadata: { sku: 'mach-one-5-pack' } } },
     ],
   }
 }
@@ -53,9 +53,9 @@ describe('GET /api/prices', () => {
 
     expect(res.status).toBe(200)
     expect(data).toHaveLength(3)
-    expect(data[0]).toEqual({ name: 'Mach One 3 Pack', sku: 'pack-3', price: 199, stripePriceId: 'price_a' })
-    expect(data[1]).toEqual({ name: 'Mach One 4 Pack', sku: 'pack-4', price: 249, stripePriceId: 'price_b' })
-    expect(data[2]).toEqual({ name: 'Mack One 5 Pack', sku: 'pack-5', price: 299, stripePriceId: 'price_c' })
+    expect(data[0]).toEqual({ name: 'Mach One 3 Pack', sku: 'mach-one-3-pack', price: 199, stripePriceId: 'price_a' })
+    expect(data[1]).toEqual({ name: 'Mach One 4 Pack', sku: 'mach-one-4-pack', price: 249, stripePriceId: 'price_b' })
+    expect(data[2]).toEqual({ name: 'Mack One 5 Pack', sku: 'mach-one-5-pack', price: 299, stripePriceId: 'price_c' })
   })
 
   it('returns 500 on Stripe API error', async () => {

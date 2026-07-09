@@ -1,10 +1,16 @@
 // Worker handles Stripe PaymentIntent creation and confirmation pages.
-// Requires STRIPE_SECRET_KEY environment variable set via:
-//   npx wrangler secret put STRIPE_SECRET_KEY
+// Secrets required:
+//   npx wrangler secret put STRIPE_SECRET_KEY       (live)
+//   npx wrangler secret put STRIPE_TEST_SECRET_KEY  (test)
 
 const STRIPE_API = 'https://api.stripe.com/v1';
 
-async function stripeApi(path, secretKey = globalThis.STRIPE_SECRET_KEY, options = {}) {
+function getSecret(env, mode) {
+  if (mode === 'test' && env.STRIPE_TEST_SECRET_KEY) return env.STRIPE_TEST_SECRET_KEY
+  return env.STRIPE_SECRET_KEY || globalThis.STRIPE_SECRET_KEY
+}
+
+async function stripeApi(path, secretKey, options = {}) {
   const resp = await fetch(STRIPE_API + path, {
     ...options,
     headers: {
@@ -79,7 +85,8 @@ export default {
     // List active prices from Stripe catalog
     if (request.method === 'GET' && url.pathname === '/api/prices') {
       try {
-        const secret = env.STRIPE_SECRET_KEY || globalThis.STRIPE_SECRET_KEY;
+        const mode = url.searchParams.get('mode') || 'live';
+        const secret = getSecret(env, mode);
         const data = await stripeApi('/prices?active=true&expand[]=data.product&limit=10', secret);
 
         const packs = data.data
@@ -106,8 +113,8 @@ export default {
     // One-shot: fetch prices + create PaymentIntent for the selected pack
     if (request.method === 'POST' && url.pathname === '/api/init-checkout') {
       try {
-        const { packIndex, email, promoCode } = await request.json();
-        const secret = env.STRIPE_SECRET_KEY || globalThis.STRIPE_SECRET_KEY;
+        const { packIndex, email, promoCode, mode: requestMode } = await request.json();
+        const secret = getSecret(env, requestMode);
 
         const data = await stripeApi('/prices?active=true&expand[]=data.product&limit=10', secret);
         const packs = data.data
@@ -222,7 +229,8 @@ export default {
 
       if (paymentIntentId) {
         try {
-          const pi = await stripeApi('/payment_intents/' + paymentIntentId, env.STRIPE_SECRET_KEY || globalThis.STRIPE_SECRET_KEY);
+          const mode = url.searchParams.get('mode') || 'live';
+          const pi = await stripeApi('/payment_intents/' + paymentIntentId, getSecret(env, mode));
           const html = confirmationPage(pi.status === 'succeeded', pi);
           return new Response(html, {
             headers: { 'content-type': 'text/html; charset=utf-8' },

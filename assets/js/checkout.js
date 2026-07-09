@@ -1,5 +1,12 @@
 export const WORKER_URL = 'https://nimble-stripe.joey-956.workers.dev'
-export const STRIPE_PK = 'pk_test_51TmefYPQzgCkAZkTEqMOAk74sX4NRbrxugEyFFmYPlqqUCvppbFxXz3RTNCvS1ii06Z5rfti3noJO3slzAjPsDQ100YB8gqoXx'
+
+const TEST_MODE = true
+
+export const STRIPE_PK = TEST_MODE
+  ? 'pk_test_51TmefYPQzgCkAZkTEqMOAk74sX4NRbrxugEyFFmYPlqqUCvppbFxXz3RTNCvS1ii06Z5rfti3noJO3slzAjPsDQ100YB8gqoXx'
+  : 'pk_live_51TmefYPQzgCkAZkTnvdVyDKW9EfnkC2NPfPwwC0wNywNIG3uGmUlCcbDDH60LzqSsSDqH6Fi28I1hn3xNvQD3aCQ00jVy3AgG9'
+
+export const IS_TEST_MODE = TEST_MODE
 
 export { PACK_DETAILS } from './pack-details.js'
 import { PACK_DETAILS as _PACK_DETAILS } from './pack-details.js'
@@ -106,6 +113,7 @@ export async function initCheckout(packIndex, email, promoCode) {
       packIndex,
       email: email || undefined,
       promoCode: promoCode || undefined,
+      mode: TEST_MODE ? 'test' : 'live',
     }),
   })
   if (!response.ok) {
@@ -126,3 +134,17 @@ export function mergePackData(apiPacks) {
 export function showError(resultEl, message) {
   resultEl.innerHTML = `<p style="color:#ff6b6b;margin:0 0 1rem">${message}</p>`
 }
+
+export function renderTestModeBanner() {
+  if (!IS_TEST_MODE) return
+  var banner = document.createElement('div')
+  banner.id = 'stripeTestModeBanner'
+  banner.style.cssText = 'background:#ff6b6b;color:#fff;text-align:center;padding:10px;font-weight:bold;font-size:0.9rem;text-transform:uppercase;letter-spacing:1px'
+  banner.textContent = 'Test Mode — No real charges will be made'
+  var section = document.querySelector('.checkout-section')
+  if (section) {
+    section.insertBefore(banner, section.firstChild)
+  }
+}
+
+

@@ -94,10 +94,11 @@ description: "Complete your preorder for Nimble Climbing Sticks"
     WORKER_URL, STRIPE_PK, PACK_DETAILS, mergePackData, getSpecsHtml, renderStickIcons,
     getConfirmPaymentOutcome, validateEmail, getShippingFields,
     buildShippingAddress, createPaymentAppearance, createPaymentFields,
-    renderSuccessConfirmation, setSubmitButton, initCheckout, showError
+    renderSuccessConfirmation, renderTestModeBanner, setSubmitButton, initCheckout, showError
   } from '/assets/js/checkout.js'
 
   async function init() {
+    renderTestModeBanner();
     var paymentErrorEl = document.getElementById("paymentError");
     var submitBtn = document.getElementById("submit-btn");
     var form = document.getElementById("checkoutForm");

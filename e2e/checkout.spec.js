@@ -43,6 +43,13 @@ async function submitForm(page) {
 }
 
 test.describe('checkout form validation', () => {
+  test('shows test mode banner when TEST_MODE is true', async ({ page }) => {
+    await waitForCheckout(page)
+    var isTest = await isStripeTestMode(page)
+    test.skip(!isTest, 'Only shown in test mode')
+    await expect(page.locator('#stripeTestModeBanner')).toBeVisible()
+    await expect(page.locator('#stripeTestModeBanner')).toContainText('Test Mode')
+  })
   test('shows error when email is missing', async ({ page }) => {
     await waitForCheckout(page)
     await fillShippingForm(page)
