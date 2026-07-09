@@ -42,22 +42,25 @@ describe('initSignupForm', () => {
     document.body.innerHTML = `
       <form id="waitingListForm" action="https://formspree.io/f/mykdrwlr" method="POST">
         <input type="email" name="email" value="test@example.com" required />
-        <input type="hidden" id="g-recaptcha-response" name="g-recaptcha-response" />
+        <input type="hidden" name="cf-turnstile-response" value="turnstile_token_abc" />
         <button type="submit">Sign Up</button>
       </form>
       <p id="waitingListFormStatus"></p>
     `
-    globalThis.grecaptcha = {
-      execute: vi.fn().mockResolvedValue('recaptcha_token_abc'),
-    }
   })
 
   afterEach(() => {
     vi.restoreAllMocks()
   })
 
+  function mockSiteverify(success) {
+    return { ok: true, json: () => Promise.resolve({ success }) }
+  }
+
   it('shows success message and resets form on 200', async () => {
-    globalThis.fetch = vi.fn().mockResolvedValue({ ok: true })
+    globalThis.fetch = vi.fn()
+      .mockResolvedValueOnce(mockSiteverify(true))
+      .mockResolvedValueOnce({ ok: true })
 
     initSignupForm()
     const form = document.getElementById('waitingListForm')
@@ -66,18 +69,25 @@ describe('initSignupForm', () => {
     await vi.waitFor(() => {
       expect(document.getElementById('waitingListFormStatus').innerHTML).toBe("You're all signed up!")
     })
-    expect(document.getElementById('g-recaptcha-response').value).toBe('recaptcha_token_abc')
-    expect(globalThis.fetch).toHaveBeenCalledWith(
+    expect(globalThis.fetch).toHaveBeenNthCalledWith(
+      1,
+      'https://turnstile-siteverify-nimble.joey-956.workers.dev',
+      expect.objectContaining({ method: 'POST' })
+    )
+    expect(globalThis.fetch).toHaveBeenNthCalledWith(
+      2,
       'https://formspree.io/f/mykdrwlr',
       expect.objectContaining({ method: 'post' })
     )
   })
 
   it('shows error messages from Formspree errors array', async () => {
-    globalThis.fetch = vi.fn().mockResolvedValue({
-      ok: false,
-      json: () => Promise.resolve({ errors: [{ message: 'Email is invalid' }] }),
-    })
+    globalThis.fetch = vi.fn()
+      .mockResolvedValueOnce(mockSiteverify(true))
+      .mockResolvedValueOnce({
+        ok: false,
+        json: () => Promise.resolve({ errors: [{ message: 'Email is invalid' }] }),
+      })
 
     initSignupForm()
     const form = document.getElementById('waitingListForm')
@@ -89,10 +99,12 @@ describe('initSignupForm', () => {
   })
 
   it('shows fallback message when errors key is missing', async () => {
-    globalThis.fetch = vi.fn().mockResolvedValue({
-      ok: false,
-      json: () => Promise.resolve({}),
-    })
+    globalThis.fetch = vi.fn()
+      .mockResolvedValueOnce(mockSiteverify(true))
+      .mockResolvedValueOnce({
+        ok: false,
+        json: () => Promise.resolve({}),
+      })
 
     initSignupForm()
     const form = document.getElementById('waitingListForm')
@@ -106,7 +118,9 @@ describe('initSignupForm', () => {
   })
 
   it('shows fallback message on network error', async () => {
-    globalThis.fetch = vi.fn().mockRejectedValue(new Error('Network failure'))
+    globalThis.fetch = vi.fn()
+      .mockResolvedValueOnce(mockSiteverify(true))
+      .mockRejectedValueOnce(new Error('Network failure'))
 
     initSignupForm()
     const form = document.getElementById('waitingListForm')
@@ -119,15 +133,39 @@ describe('initSignupForm', () => {
     })
   })
 
-  it('injects reCAPTCHA token into hidden field', async () => {
-    globalThis.fetch = vi.fn().mockResolvedValue({ ok: true })
+  it('shows verification failed when siteverify returns false', async () => {
+    globalThis.fetch = vi.fn().mockResolvedValueOnce(mockSiteverify(false))
 
     initSignupForm()
     const form = document.getElementById('waitingListForm')
     form.dispatchEvent(new Event('submit', { cancelable: true }))
 
     await vi.waitFor(() => {
-      expect(document.getElementById('g-recaptcha-response').value).toBe('recaptcha_token_abc')
+      expect(document.getElementById('waitingListFormStatus').innerHTML).toBe(
+        'Verification failed. Please try again.'
+      )
     })
+  })
+
+  it('shows verification failed when no turnstile token', async () => {
+    document.body.innerHTML = `
+      <form id="waitingListForm" action="https://formspree.io/f/mykdrwlr" method="POST">
+        <input type="email" name="email" value="test@example.com" required />
+        <button type="submit">Sign Up</button>
+      </form>
+      <p id="waitingListFormStatus"></p>
+    `
+    globalThis.fetch = vi.fn()
+
+    initSignupForm()
+    const form = document.getElementById('waitingListForm')
+    form.dispatchEvent(new Event('submit', { cancelable: true }))
+
+    await vi.waitFor(() => {
+      expect(document.getElementById('waitingListFormStatus').innerHTML).toBe(
+        'Verification failed. Please try again.'
+      )
+    })
+    expect(globalThis.fetch).not.toHaveBeenCalled()
   })
 })

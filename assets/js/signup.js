@@ -6,6 +6,8 @@ export function getFormspreeStatus(response, data) {
   return "Oops! Something went wrong. Try just emailing joey@nimblehunting.com"
 }
 
+const WORKER_URL = 'https://turnstile-siteverify-nimble.joey-956.workers.dev'
+
 export function initSignupForm() {
   const form = document.getElementById("waitingListForm")
   const status = document.getElementById("waitingListFormStatus")
@@ -13,8 +15,22 @@ export function initSignupForm() {
   async function handleSubmit(event) {
     event.preventDefault()
 
-    const token = await grecaptcha.execute('6Lfr-agpAAAAAAfwGOtDvgX6cI0woP5J9VPMui7C', {action: 'submit'})
-    document.getElementById('g-recaptcha-response').value = token
+    const token = form.querySelector('[name="cf-turnstile-response"]')?.value
+    if (!token) {
+      status.innerHTML = "Verification failed. Please try again."
+      return
+    }
+
+    const verifyRes = await fetch(WORKER_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token }),
+    })
+    const verifyData = await verifyRes.json()
+    if (!verifyData.success) {
+      status.innerHTML = "Verification failed. Please try again."
+      return
+    }
 
     const data = new FormData(event.target)
     fetch(event.target.action, {

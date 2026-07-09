@@ -3,19 +3,12 @@ import { test, expect } from '@playwright/test'
 test('home page loads with hero section', async ({ page }) => {
   await page.goto('/')
   await expect(page.locator('.hero')).toBeVisible()
-  await expect(page.locator('.hero-title h1')).toContainText('Nimble Climbing Sticks')
+  await expect(page.locator('.hero-text h1')).toContainText('Nimble Climbing Sticks')
 })
 
-test('home page transitions from coming-soon to now-available', async ({ page }) => {
+test('home page hero subtitle renders from front matter', async ({ page }) => {
   await page.goto('/')
-  await expect(page.locator('#heroSubtitle')).toContainText('Coming soon...')
-  await expect(page.locator('.coming-soon-bg')).toBeVisible()
-
-  // Wait for the 2.5s transition
-  await page.waitForTimeout(3000)
-
-  await expect(page.locator('#heroSubtitle')).toContainText('Now available')
-  await expect(page.locator('.hero.available')).toBeVisible()
+  await expect(page.locator('.hero-text p')).toContainText('For The Mobile Hunter')
 })
 
 test('shop page loads with pack selector', async ({ page }) => {

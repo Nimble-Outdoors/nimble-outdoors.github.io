@@ -225,6 +225,11 @@ description: "Complete your preorder for Nimble Climbing Sticks"
         }
 
         var fields = getShippingFields();
+        if (!fields.name || !fields.address || !fields.city || !fields.state || !fields.zip) {
+          showError(paymentErrorEl, 'Please fill in all required shipping fields.');
+          setSubmitButton(submitBtn, pack, discountInfo);
+          return;
+        }
         try {
           var confirmResult = await stripe.confirmPayment({
             elements: elements,

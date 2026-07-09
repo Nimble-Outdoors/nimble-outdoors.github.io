@@ -55,7 +55,7 @@ test.describe('checkout form validation', () => {
     await waitForCheckout(page)
     await page.fill('#email', 'test@example.com')
     await submitForm(page)
-    await expect(page.locator('#paymentError')).toContainText('shipping')
+    await expect(page.locator('#paymentError')).toContainText('shipping fields')
   })
 })
 

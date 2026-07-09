@@ -56,7 +56,7 @@ Push to `main` → GitHub Actions builds with `bundle exec jekyll build` and dep
 ## External services on the landing page
 
 - **Formspree** — signup form submits to `https://formspree.io/f/mykdrwlr`
-- **Google reCAPTCHA v2** — site key `6Lfr-agpAAAAAAfwGOtDvgX6cI0woP5J9VPMui7C`, hidden via `.grecaptcha-badge { display: none !important }`
+- **Cloudflare Turnstile** — signup form bot protection (sitekey `0x4AAAAAADyQlOuS4XbxeD72`), validated via managed siteverify Worker at `https://turnstile-siteverify-nimble.joey-956.workers.dev`
 - **Stripe** — payment processing on the preorder forms (checkout.html)
 - **Cloudflare Worker** — `worker/` directory contains a Worker that creates Stripe PaymentIntents and serves confirmation pages. Deployed separately via `npx wrangler deploy`.
 

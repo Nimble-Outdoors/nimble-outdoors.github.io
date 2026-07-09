@@ -7,7 +7,7 @@ hero:
   subtitle: "For The Mobile Hunter"
 ---
 
-<script src="https://www.google.com/recaptcha/api.js?render=6Lfr-agpAAAAAAfwGOtDvgX6cI0woP5J9VPMui7C"></script>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 
 <section class="hero">
   <picture class="hero-bg">
@@ -61,7 +61,7 @@ hero:
     <p id="waitingListFormStatus"></p>
     <form id="waitingListForm" action="https://formspree.io/f/mykdrwlr" method="POST" class="signup-form">
       <input type="email" name="email" placeholder="Enter your email" required />
-      <input type="hidden" id="g-recaptcha-response" name="g-recaptcha-response" />
+      <div class="cf-turnstile" data-sitekey="0x4AAAAAADyQlOuS4XbxeD72" data-action="turnstile-spin-v1" data-size="invisible"></div>
       <button type="submit" id="sendMessageButton" class="btn btn-primary">Sign Up</button>
     </form>
   </div>
