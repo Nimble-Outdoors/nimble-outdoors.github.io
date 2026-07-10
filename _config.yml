@@ -1,6 +1,7 @@
 title: "Nimble Outdoors"
 description: "Ultra Lightweight Climbing Sticks For The Mobile Hunter"
 baseurl: ""
-url: ""
+url: "https://nimblehunting.com"
+image: /assets/images/sticks-white-with-specs.png
 
 markdown: kramdown

@@ -46,7 +46,7 @@ function confirmationPage(success, data) {
   <div class="card">
     <div class="check">&#10003;</div>
     <h1>Payment Confirmed</h1>
-    <p>Your preorder has been placed. You'll receive a confirmation email shortly.</p>
+    <p>Your order has been placed. You'll receive a confirmation email shortly.</p>
     <p>Transaction: ${data.id}</p>
     <p>Amount: $${(data.amount / 100).toFixed(2)}</p>
     <a href="/">Return to Nimble Outdoors</a>

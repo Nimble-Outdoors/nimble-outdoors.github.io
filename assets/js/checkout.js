@@ -95,7 +95,7 @@ export function renderSuccessConfirmation(form, email) {
     '<div class="card" style="background:#222;padding:2rem;border-radius:8px;border:4px solid #1F3D1B;text-align:center">' +
       '<div style="font-size:3rem;margin-bottom:0.5rem">&#10003;</div>' +
       '<h3 style="margin:0 0 0.5rem">Payment Confirmed</h3>' +
-      `<p style="color:#ccc;margin:0">Your preorder has been placed. You'll receive a receipt at ${email}.</p>` +
+      `<p style="color:#ccc;margin:0">Your order has been placed. You'll receive a receipt at ${email}.</p>` +
     '</div>'
 }
 

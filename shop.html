@@ -1,8 +1,21 @@
 ---
-layout: landing
+layout: default
 title: "Nimble Outdoors — Nimble Climbing Sticks"
 description: "Ultra lightweight carbon fiber climbing sticks. Choose your pack."
 ---
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Product",
+  "name": "Nimble Climbing Sticks",
+  "description": "Ultra lightweight hand-crafted carbon fiber climbing sticks for mobile hunters. 13 oz per stick, 20-inch length, 5-inch stand-off, daisy chain rope attachment.",
+  "brand": { "@type": "Brand", "name": "Nimble Outdoors" },
+  "manufacturer": { "@type": "Organization", "name": "Nimble Outdoors" },
+  "material": "Carbon fiber composite",
+  "url": "https://nimblehunting.com/shop.html"
+}
+</script>
 
 <section class="shop-c-hero">
   <div class="shop-c-hero-bg"></div>
@@ -58,7 +71,7 @@ description: "Ultra lightweight carbon fiber climbing sticks. Choose your pack."
           </div>
         </div>
         <p class="shop-c-display-price loading-shimmer loading-shimmer--lg" id="packPrice"></p>
-        <a href="/checkout.html?pack=2" class="btn btn-primary" id="preorderLink1">Preorder Now</a>
+        <a href="/checkout.html?pack=2" class="btn btn-primary" id="orderLink1">Order Now</a>
       </div>
     </div>
   </div>
@@ -144,7 +157,7 @@ description: "Ultra lightweight carbon fiber climbing sticks. Choose your pack."
       </div>
     </div>
     <p class="shop-c-cta-price loading-shimmer loading-shimmer--lg" id="ctaPrice"></p>
-    <a href="/checkout.html?pack=2" class="btn btn-primary" id="preorderLink2">Preorder Now</a>
+    <a href="/checkout.html?pack=2" class="btn btn-primary" id="orderLink2">Order Now</a>
     <p class="shop-c-cta-note">Questions? Call or text Joey — 715-530-2464</p>
   </div>
 </section>
@@ -173,8 +186,8 @@ description: "Ultra lightweight carbon fiber climbing sticks. Choose your pack."
     document.getElementById("packPrice").classList.remove("loading-shimmer", "loading-shimmer--lg");
     document.getElementById("ctaPrice").textContent = "$" + pack.price;
     document.getElementById("ctaPrice").classList.remove("loading-shimmer", "loading-shimmer--lg");
-    document.getElementById("preorderLink1").href = "/checkout.html?pack=" + (index + 1);
-    document.getElementById("preorderLink2").href = "/checkout.html?pack=" + (index + 1);
+    document.getElementById("orderLink1").href = "/checkout.html?pack=" + (index + 1);
+    document.getElementById("orderLink2").href = "/checkout.html?pack=" + (index + 1);
 
     renderStickIcons(displaySticks, pack.sticks, "shop-c-display-stick");
   }
@@ -199,7 +212,7 @@ description: "Ultra lightweight carbon fiber climbing sticks. Choose your pack."
     document.querySelectorAll(".shop-c-toggle--sm").forEach(function(el) {
       el.textContent = 'Unavailable';
     });
-    document.getElementById("preorderLink1").removeAttribute("href");
-    document.getElementById("preorderLink2").removeAttribute("href");
+    document.getElementById("orderLink1").removeAttribute("href");
+    document.getElementById("orderLink2").removeAttribute("href");
   });
 </script>
