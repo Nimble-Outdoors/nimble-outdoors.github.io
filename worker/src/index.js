@@ -141,7 +141,6 @@ export default {
         const description = 'Nimble Climbing Sticks — ' + pack.name;
 
         let discountInfo = null;
-        let promoId = null;
 
         if (promoCode) {
           const trimmedCode = promoCode.trim();
@@ -188,7 +187,6 @@ export default {
 
             if (discountInfo) {
               cents -= discountCents;
-              promoId = promo.id;
               discountInfo.code = trimmedCode;
             }
           }
@@ -235,7 +233,7 @@ export default {
           return new Response(html, {
             headers: { 'content-type': 'text/html; charset=utf-8' },
           });
-        } catch (err) {
+        } catch {
           // fall through to generic response
         }
       }

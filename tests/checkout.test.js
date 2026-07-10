@@ -511,7 +511,7 @@ describe('checkout init flow integration (jsdom)', () => {
 
     try {
       await initCheckout(4)
-    } catch (err) {
+    } catch {
       showError(resultEl, 'Pricing currently unavailable. Please try again later.')
       return
     }
@@ -536,8 +536,8 @@ describe('checkout init flow integration (jsdom)', () => {
       submitBtn.disabled = true
 
       try {
-        var data = await initCheckout(packIndex)
-      } catch (err) {
+        await initCheckout(packIndex)
+      } catch {
         showError(resultEl, 'Pricing currently unavailable. Please try again later.')
         return
       }
@@ -764,6 +764,7 @@ describe('checkout confirmPayment integration (jsdom)', () => {
     const form = document.getElementById('checkoutForm')
     const resultEl = document.getElementById('checkoutResults')
     const paymentEl = document.getElementById('stripe-payment-element')
+    const submitBtn = document.getElementById('submit-btn')
 
     const handleSubmit = async (e) => {
       e.preventDefault()

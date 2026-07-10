@@ -5,11 +5,15 @@
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",
+    "lint": "eslint .",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.61.1",
+    "eslint": "^10.6.0",
+    "globals": "^17.7.0",
     "jsdom": "^25.0.0",
     "vitest": "^3.0.0"
   },

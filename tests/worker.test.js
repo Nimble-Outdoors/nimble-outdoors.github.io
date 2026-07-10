@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 
 globalThis.STRIPE_SECRET_KEY = 'sk_test_mock'
 
@@ -322,7 +322,7 @@ describe('POST /api/init-checkout', () => {
     })
 
     it('returns 400 for invalid promo code', async () => {
-      globalThis.fetch = vi.fn().mockImplementation(async (url, opts) => {
+      globalThis.fetch = vi.fn().mockImplementation(async (url) => {
         if (url.includes('/prices') && !url.includes('/prices/')) {
           return { ok: true, json: () => Promise.resolve(pricesListResponse()) }
         }
@@ -347,7 +347,7 @@ describe('POST /api/init-checkout', () => {
     })
 
     it('returns 400 when promotion.coupon is missing', async () => {
-      globalThis.fetch = vi.fn().mockImplementation(async (url, opts) => {
+      globalThis.fetch = vi.fn().mockImplementation(async (url) => {
         if (url.includes('/prices') && !url.includes('/prices/')) {
           return { ok: true, json: () => Promise.resolve(pricesListResponse()) }
         }
@@ -374,7 +374,7 @@ describe('POST /api/init-checkout', () => {
     })
 
     it('returns 400 when coupon is invalid', async () => {
-      globalThis.fetch = vi.fn().mockImplementation(async (url, opts) => {
+      globalThis.fetch = vi.fn().mockImplementation(async (url) => {
         if (url.includes('/prices') && !url.includes('/prices/')) {
           return { ok: true, json: () => Promise.resolve(pricesListResponse()) }
         }
