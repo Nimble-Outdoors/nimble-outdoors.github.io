@@ -7,9 +7,6 @@ layout: none
     <loc>{{ site.url }}/</loc>
   </url>
   <url>
-    <loc>{{ site.url }}/shop.html</loc>
-  </url>
-  <url>
     <loc>{{ site.url }}/checkout.html</loc>
   </url>
 </urlset>

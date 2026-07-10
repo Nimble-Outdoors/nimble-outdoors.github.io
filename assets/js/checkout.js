@@ -58,7 +58,7 @@ export function createPaymentAppearance() {
   return {
     theme: 'night',
     variables: {
-      colorPrimary: '#1F3D1B',
+      colorPrimary: '#2E7D32',
       colorBackground: '#222222',
       colorText: '#ffffff',
       colorDanger: '#ff6b6b',

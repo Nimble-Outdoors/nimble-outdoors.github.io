@@ -11,8 +11,8 @@ test('home page hero subtitle renders from front matter', async ({ page }) => {
   await expect(page.locator('.hero-text p')).toContainText('For The Mobile Hunter')
 })
 
-test('shop page loads with pack selector', async ({ page }) => {
-  await page.goto('/shop.html')
+test('home page has pack selector section', async ({ page }) => {
+  await page.goto('/')
   await expect(page.locator('.shop-c-selector')).toBeVisible()
 })
 
