@@ -33,7 +33,7 @@ image: /assets/images/sticks-white-with-specs.png
     <p class="hero-overlay-sku">Nimble Climbing Sticks</p>
     <h2>Lightest.<br>Fastest.<br>Carbon Fiber.</h2>
     <p class="hero-overlay-desc">13 oz per stick. 20 inches. 5-inch stand-off. Every stick is hand crafted in Wisconsin — because your climb matters.</p>
-    <a href="#selector" class="btn btn-primary">Choose Your Pack</a>
+    <a href="/product.html" class="btn btn-primary">Choose Your Pack</a>
   </div>
 </section>
 
@@ -70,7 +70,7 @@ image: /assets/images/sticks-white-with-specs.png
           </div>
         </div>
         <p class="shop-c-display-price loading-shimmer loading-shimmer--lg" id="packPrice"></p>
-        <a href="/checkout.html?pack=2" class="btn btn-primary" id="orderLink1">Order Now</a>
+        <a href="/product.html#selector" class="btn btn-primary" id="orderLink1">Order Now</a>
       </div>
     </div>
   </div>
@@ -155,7 +155,7 @@ image: /assets/images/sticks-white-with-specs.png
       </div>
     </div>
     <p class="shop-c-cta-price loading-shimmer loading-shimmer--lg" id="ctaPrice"></p>
-    <a href="/checkout.html?pack=2" class="btn btn-primary" id="orderLink2">Order Now</a>
+    <a href="/product.html#selector" class="btn btn-primary" id="orderLink2">Order Now</a>
     <p class="shop-c-cta-note">Questions? Call or text Joey — 715-530-2464</p>
   </div>
 </section>
@@ -199,8 +199,8 @@ image: /assets/images/sticks-white-with-specs.png
     document.getElementById("packPrice").classList.remove("loading-shimmer", "loading-shimmer--lg");
     document.getElementById("ctaPrice").textContent = "$" + pack.price;
     document.getElementById("ctaPrice").classList.remove("loading-shimmer", "loading-shimmer--lg");
-    document.getElementById("orderLink1").href = "/checkout.html?pack=" + (index + 1);
-    document.getElementById("orderLink2").href = "/checkout.html?pack=" + (index + 1);
+    document.getElementById("orderLink1").href = "/product.html?pack=" + (index + 1) + "#selector";
+    document.getElementById("orderLink2").href = "/product.html?pack=" + (index + 1) + "#selector";
 
     renderStickIcons(displaySticks, pack.sticks, "shop-c-display-stick");
   }
