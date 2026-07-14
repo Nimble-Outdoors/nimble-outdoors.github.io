@@ -152,32 +152,16 @@ image: /assets/images/mach-one-single-full-stick.png
   <div class="container">
     <h2>Specifications</h2>
     <table class="shop-c-specs-table">
-      <tr><td>Weight Per Stick</td><td>13 oz</td></tr>
-      <tr><td>Stick Length</td><td>20 inches</td></tr>
-      <tr><td>Stand-off</td><td>5 inches</td></tr>
-      <tr><td>Material</td><td>Carbon fiber composite</td></tr>
-      <tr><td>Attachment</td><td>Daisy chain rope</td></tr>
+      <tr><td>Weight Per Stick</td><td>{{ site.data.stick.weight }}</td></tr>
+      <tr><td>Stick Length</td><td>{{ site.data.stick.length }}</td></tr>
+      <tr><td>Stand-off</td><td>{{ site.data.stick.standoff }}</td></tr>
+      <tr><td>Weight Capacity</td><td>{{ site.data.stick.weight_capacity }}</td></tr>
+      <tr><td>Step Width</td><td>{{ site.data.stick.step }}</td></tr>
+      <tr><td>Material</td><td>{{ site.data.stick.material }}</td></tr>
+      <tr><td>Attachment</td><td>{{ site.data.stick.attachment }}</td></tr>
     </table>
   </div>
 </section>
-
-<!-- CTA -->
-<section class="shop-c-cta">
-  <div class="container">
-    <h2>Ready to climb lighter?</h2>
-    <div class="shop-c-cta-selector">
-      <div class="shop-c-cta-toggles" id="ctaToggles">
-        <button class="shop-c-toggle shop-c-toggle--sm" data-index="0">3-Pack</button>
-        <button class="shop-c-toggle shop-c-toggle--sm active" data-index="1">4-Pack</button>
-        <button class="shop-c-toggle shop-c-toggle--sm" data-index="2">5-Pack</button>
-      </div>
-    </div>
-    <p class="shop-c-cta-price loading-shimmer loading-shimmer--lg" id="ctaPrice"></p>
-    <a href="/checkout.html?pack=2" class="btn btn-primary" id="orderLink2">Order Now</a>
-    <p class="shop-c-cta-note">Questions? Call or text Joey — 715-530-2464</p>
-  </div>
-</section>
-
 
 <script id="pack-data" type="application/json">{{ site.data.packs | jsonify }}</script>
 <script type="module">
