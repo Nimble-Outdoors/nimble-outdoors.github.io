@@ -415,6 +415,59 @@ describe('initCheckout', () => {
     await initCheckout(4)
     expect(sentBody.promoCode).toBeUndefined()
   })
+
+  it('aborts fetch after 10 seconds when Worker hangs', async () => {
+    vi.useFakeTimers()
+    globalThis.fetch = vi.fn().mockImplementation((_url, opts) => {
+      return new Promise((_resolve, reject) => {
+        opts.signal.addEventListener('abort', () => {
+          reject(new DOMException('The operation was aborted.', 'AbortError'))
+        })
+      })
+    })
+
+    const promise = initCheckout(4)
+
+    vi.advanceTimersByTime(10_000)
+
+    try {
+      await promise
+      throw new Error('Expected abort error')
+    } catch (e) {
+      expect(e.name).toBe('AbortError')
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('passes AbortController signal to fetch', async () => {
+    let abortSignal = null
+    globalThis.fetch = vi.fn().mockImplementation(async (url, opts) => {
+      abortSignal = opts.signal
+      return {
+        ok: true,
+        json: () => Promise.resolve({ packs: [{ name: '4-Pack', price: 249 }], clientSecret: 'pi_s' }),
+      }
+    })
+
+    await initCheckout(4)
+    expect(abortSignal).toBeInstanceOf(AbortSignal)
+    expect(abortSignal.aborted).toBe(false)
+  })
+
+  it('clears timeout when fetch succeeds', async () => {
+    vi.useFakeTimers()
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ packs: [{ name: '4-Pack', price: 249 }], clientSecret: 'pi_s' }),
+    })
+
+    await initCheckout(4)
+
+    vi.advanceTimersByTime(15_000)
+    expect(globalThis.fetch).toHaveBeenCalledTimes(1)
+    vi.useRealTimers()
+  })
 })
 
 describe('checkout init flow integration (jsdom)', () => {

@@ -1,6 +1,7 @@
 export const WORKER_URL = 'https://nimble-stripe.joey-956.workers.dev'
 
 const TEST_MODE = true
+const CHECKOUT_TIMEOUT_MS = 10_000
 
 export const STRIPE_PK = TEST_MODE
   ? 'pk_test_51TmefYPQzgCkAZkTEqMOAk74sX4NRbrxugEyFFmYPlqqUCvppbFxXz3RTNCvS1ii06Z5rfti3noJO3slzAjPsDQ100YB8gqoXx'
@@ -16,11 +17,12 @@ export function getConfirmPaymentOutcome(confirmResult) {
   if (confirmResult.error) {
     return { type: 'error', message: confirmResult.error.message }
   }
-  if (confirmResult.paymentIntent && confirmResult.paymentIntent.status === 'succeeded') {
+  const pi = confirmResult.paymentIntent
+  if (pi?.status === 'succeeded') {
     return { type: 'success' }
   }
-  if (confirmResult.paymentIntent && confirmResult.paymentIntent.last_payment_error) {
-    return { type: 'error', message: confirmResult.paymentIntent.last_payment_error.message }
+  if (pi?.last_payment_error) {
+    return { type: 'error', message: pi.last_payment_error.message }
   }
   return { type: 'requires_action' }
 }
@@ -100,13 +102,23 @@ export function renderSuccessConfirmation(form, email) {
 }
 
 export function setSubmitButton(submitBtn, pack, discount) {
-  var price = discount ? pack.price - discount.amount : pack.price;
+  const price = discount ? pack.price - discount.amount : pack.price
   submitBtn.textContent = `Pay $${price.toFixed(2)}`
   submitBtn.disabled = false
 }
 
+async function fetchWithTimeout(url, opts, ms) {
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), ms)
+  try {
+    return await fetch(url, { ...opts, signal: controller.signal })
+  } finally {
+    clearTimeout(timeout)
+  }
+}
+
 export async function initCheckout(packIndex, email, promoCode) {
-  const response = await fetch(`${WORKER_URL}/api/init-checkout`, {
+  const response = await fetchWithTimeout(`${WORKER_URL}/api/init-checkout`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -115,20 +127,20 @@ export async function initCheckout(packIndex, email, promoCode) {
       promoCode: promoCode || undefined,
       mode: TEST_MODE ? 'test' : 'live',
     }),
-  })
+  }, CHECKOUT_TIMEOUT_MS)
   if (!response.ok) {
     const errData = await response.json()
     throw new Error(errData.error || 'Failed to initialize checkout')
   }
-  const data = await response.json()
-  return data
+  return response.json()
 }
 
 export function mergePackData(apiPacks) {
-  return apiPacks.map(function(p, i) {
-    var detail = _getPackDetails()[i];
-    return detail ? Object.assign({}, detail, p) : p;
-  });
+  const details = _getPackDetails()
+  return apiPacks.map(function (p, i) {
+    const detail = details[i]
+    return detail ? Object.assign({}, detail, p) : p
+  })
 }
 
 export function showError(resultEl, message) {
@@ -137,14 +149,12 @@ export function showError(resultEl, message) {
 
 export function renderTestModeBanner() {
   if (!IS_TEST_MODE) return
-  var banner = document.createElement('div')
+  const banner = document.createElement('div')
   banner.id = 'stripeTestModeBanner'
   banner.style.cssText = 'background:#ff6b6b;color:#fff;text-align:center;padding:10px;font-weight:bold;font-size:0.9rem;text-transform:uppercase;letter-spacing:1px'
   banner.textContent = 'Test Mode — No real charges will be made'
-  var section = document.querySelector('.checkout-section')
+  const section = document.querySelector('.checkout-section')
   if (section) {
     section.insertBefore(banner, section.firstChild)
   }
 }
-
-
