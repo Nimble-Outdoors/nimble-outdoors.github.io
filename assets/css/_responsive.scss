@@ -57,6 +57,20 @@
     font-size: 2.5rem;
   }
 
+  .hero-overlay-cta {
+    position: absolute;
+    top: 60vh;
+    left: 0;
+    right: 0;
+    bottom: auto;
+    text-align: center;
+    padding: 0 1.5rem;
+
+    h2 {
+      font-size: 2.5rem;
+    }
+  }
+
   .hero-overlay-desc {
     font-size: 0.85rem;
   }

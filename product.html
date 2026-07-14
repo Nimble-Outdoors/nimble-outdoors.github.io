@@ -1,7 +1,7 @@
 ---
 layout: default
 title: "Nimble Mach One — Carbon Fiber Climbing Sticks"
-description: "Ultra lightweight carbon fiber climbing sticks for mobile hunters. 13 oz per stick, 20-inch length, 5-inch stand-off. The Nimble Mach One."
+description: "Ultra lightweight carbon fiber climbing sticks for mobile hunters."
 image: /assets/images/mach-one-single-full-stick.png
 ---
 
@@ -233,10 +233,14 @@ image: /assets/images/mach-one-single-full-stick.png
     document.getElementById("packWeight").textContent = pack.weight;
     document.getElementById("packPrice").textContent = "$" + pack.price;
     document.getElementById("packPrice").classList.remove("loading-shimmer", "loading-shimmer--lg");
-    document.getElementById("ctaPrice").textContent = "$" + pack.price;
-    document.getElementById("ctaPrice").classList.remove("loading-shimmer", "loading-shimmer--lg");
+    var ctaPrice = document.getElementById("ctaPrice");
+    if (ctaPrice) {
+      ctaPrice.textContent = "$" + pack.price;
+      ctaPrice.classList.remove("loading-shimmer", "loading-shimmer--lg");
+    }
     document.getElementById("orderLink").href = "/checkout.html?pack=" + (index + 1);
-    document.getElementById("orderLink2").href = "/checkout.html?pack=" + (index + 1);
+    var orderLink2 = document.getElementById("orderLink2");
+    if (orderLink2) orderLink2.href = "/checkout.html?pack=" + (index + 1);
   }
 
   document.querySelectorAll(".product-pack-toggle").forEach(function(el) {
@@ -260,12 +264,16 @@ image: /assets/images/mach-one-single-full-stick.png
   }).catch(function() {
     document.getElementById("packPrice").textContent = 'Unavailable';
     document.getElementById("packPrice").classList.remove("loading-shimmer", "loading-shimmer--lg");
-    document.getElementById("ctaPrice").textContent = 'Unavailable';
-    document.getElementById("ctaPrice").classList.remove("loading-shimmer", "loading-shimmer--lg");
+    var ctaPrice = document.getElementById("ctaPrice");
+    if (ctaPrice) {
+      ctaPrice.textContent = 'Unavailable';
+      ctaPrice.classList.remove("loading-shimmer", "loading-shimmer--lg");
+    }
     document.querySelectorAll(".shop-c-toggle--sm").forEach(function(el) {
       el.textContent = 'Unavailable';
     });
     document.getElementById("orderLink").removeAttribute("href");
-    document.getElementById("orderLink2").removeAttribute("href");
+    var orderLink2 = document.getElementById("orderLink2");
+    if (orderLink2) orderLink2.removeAttribute("href");
   });
 </script>

@@ -60,14 +60,13 @@
 
 .hero-overlay-card {
   position: absolute;
-  top: 12vh;
-  left: 50%;
-  transform: translateX(-50%);
+  top: 8vh;
+  left: 5%;
   z-index: 2;
   padding: 3rem 4rem;
   width: 90%;
-  max-width: 40rem;
-  text-align: center;
+  max-width: none;
+  text-align: left;
 
   .btn {
     font-size: 1rem;
@@ -96,4 +95,24 @@
   color: var(--color-text-light);
   line-height: 1.5;
   margin-bottom: 1.5rem;
+}
+
+.hero-overlay-cta {
+  position: absolute;
+  bottom: 20vh;
+  right: 15%;
+  z-index: 2;
+  text-align: right;
+
+  h2 {
+    font-size: 3.5rem;
+    line-height: 1.05;
+    color: var(--color-text);
+    margin-bottom: 1rem;
+  }
+
+  .btn {
+    font-size: 1rem;
+    padding: 0.875rem 2.25rem;
+  }
 }
