@@ -91,7 +91,7 @@ description: "Complete your order for Nimble Climbing Sticks"
 <script src="https://js.stripe.com/v3/"></script>
 <script type="module">
   import {
-    STRIPE_PK, PACK_DETAILS, mergePackData, getSpecsHtml, renderStickIcons,
+    STRIPE_PK, getPackDetails, mergePackData, getSpecsHtml, renderStickIcons,
     getConfirmPaymentOutcome, validateEmail, getShippingFields,
     buildShippingAddress, createPaymentAppearance, createPaymentFields,
     renderSuccessConfirmation, renderTestModeBanner, setSubmitButton, initCheckout, showError
@@ -100,7 +100,7 @@ description: "Complete your order for Nimble Climbing Sticks"
   function readPackIndex() {
     const params = new URLSearchParams(window.location.search)
     const n = parseInt(params.get('pack')) || 2
-    return (n >= 1 && n <= PACK_DETAILS.length) ? n : 2
+    return (n >= 1 && n <= getPackDetails().length) ? n : 2
   }
 
   function handleRedirect(packIndex) {
