@@ -1,4 +1,4 @@
-import { PACK_DETAILS } from './pack-details.js'
+import { getPackDetails } from './pack-details.js'
 
 const PRICES_URL = 'https://nimble-stripe.joey-956.workers.dev/api/prices'
 
@@ -13,7 +13,7 @@ export async function fetchPacks() {
   const response = await fetch(PRICES_URL)
   if (!response.ok) throw new Error('Failed to load pricing')
   const prices = await response.json()
-  cachedPacks = PACK_DETAILS.map(detail => {
+  cachedPacks = getPackDetails().map(detail => {
     const match = prices.find(p => p.sku === detail.sku)
     if (!match) throw new Error('Pricing unavailable for ' + detail.name)
     return { ...detail, price: match.price, stripePriceId: match.stripePriceId }
@@ -25,7 +25,6 @@ export function getSpecsHtml(pack) {
   return [
     `<li><strong>${pack.sticks}</strong> carbon fiber sticks</li>`,
     `<li><strong>${pack.weight}</strong> total weight</li>`,
-    `<li><strong>${pack.climb}</strong> climb height</li>`,
     `<li>Daisy chain rope attachment</li>`,
   ].join('')
 }

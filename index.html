@@ -30,10 +30,10 @@ image: /assets/images/sticks-white-with-specs.png
     <p>{{ page.hero.subtitle }}</p>
   </div>
   <div class="hero-overlay-card">
-    <p class="hero-overlay-sku">Nimble Climbing Sticks</p>
+    <h2>Introducing the Nimble Mach One climbing sticks</h2>
     <h2>Lightest.<br>Fastest.<br>Carbon Fiber.</h2>
     <p class="hero-overlay-desc">13 oz per stick. 20 inches. 5-inch stand-off. Every stick is hand crafted in Wisconsin — because your climb matters.</p>
-    <a href="/product.html" class="btn btn-primary">Choose Your Pack</a>
+    <a href="/product.html" class="btn btn-primary">Order Now</a>
   </div>
 </section>
 
@@ -64,10 +64,7 @@ image: /assets/images/sticks-white-with-specs.png
             <span class="shop-c-stat-value" id="packWeight">{{ site.data.packs[1].weight }}</span>
             <span class="shop-c-stat-label">Total Weight</span>
           </div>
-          <div class="shop-c-stat">
-            <span class="shop-c-stat-value" id="packClimb">{{ site.data.packs[1].climb }}</span>
-            <span class="shop-c-stat-label">Climb Height</span>
-          </div>
+
         </div>
         <p class="shop-c-display-price loading-shimmer loading-shimmer--lg" id="packPrice"></p>
         <a href="/product.html#selector" class="btn btn-primary" id="orderLink1">Order Now</a>
@@ -131,44 +128,16 @@ image: /assets/images/sticks-white-with-specs.png
   </div>
 </section>
 
-<section class="shop-c-specs">
-  <div class="container">
-    <h2>Specifications</h2>
-    <table class="shop-c-specs-table">
-      <tr><td>Weight Per Stick</td><td>13 oz</td></tr>
-      <tr><td>Stick Length</td><td>20 inches</td></tr>
-      <tr><td>Stand-off</td><td>5 inches</td></tr>
-      <tr><td>Material</td><td>Carbon fiber composite</td></tr>
-      <tr><td>Attachment</td><td>Daisy chain rope</td></tr>
-    </table>
-  </div>
-</section>
-
-<section class="shop-c-cta">
-  <div class="container">
-    <h2>Ready to climb lighter?</h2>
-    <div class="shop-c-cta-selector">
-      <div class="shop-c-cta-toggles" id="ctaToggles">
-        <button class="shop-c-toggle shop-c-toggle--sm" data-index="0">3-Pack</button>
-        <button class="shop-c-toggle shop-c-toggle--sm active" data-index="1">4-Pack</button>
-        <button class="shop-c-toggle shop-c-toggle--sm" data-index="2">5-Pack</button>
-      </div>
-    </div>
-    <p class="shop-c-cta-price loading-shimmer loading-shimmer--lg" id="ctaPrice"></p>
-    <a href="/product.html#selector" class="btn btn-primary" id="orderLink2">Order Now</a>
-    <p class="shop-c-cta-note">Questions? Call or text Joey — 715-530-2464</p>
-  </div>
-</section>
-
 <section id="signup" class="cta-section">
   <div class="container">
-    <h2>Be First In Line</h2>
+    <h2>Be first in the know.</h2>
     <p id="waitingListFormStatus"></p>
     <form id="waitingListForm" action="https://formspree.io/f/mykdrwlr" method="POST" class="signup-form">
       <input type="email" name="email" placeholder="Enter your email" required />
       <div class="cf-turnstile" data-sitekey="0x4AAAAAADyQlOuS4XbxeD72" data-action="turnstile-spin-v1" data-size="invisible"></div>
       <button type="submit" id="sendMessageButton" class="btn btn-primary">Sign Up</button>
     </form>
+    <p>Sign up for the newsletter and get info about new products along with special deals.</p>
   </div>
 </section>
 
@@ -194,7 +163,6 @@ image: /assets/images/sticks-white-with-specs.png
     document.getElementById("packDesc").textContent = pack.desc;
     document.getElementById("packSticks").textContent = pack.sticks;
     document.getElementById("packWeight").textContent = pack.weight;
-    document.getElementById("packClimb").textContent = pack.climb;
     document.getElementById("packPrice").textContent = "$" + pack.price;
     document.getElementById("packPrice").classList.remove("loading-shimmer", "loading-shimmer--lg");
     document.getElementById("ctaPrice").textContent = "$" + pack.price;

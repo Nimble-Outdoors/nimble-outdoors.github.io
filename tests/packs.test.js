@@ -3,31 +3,24 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { PACK_DETAILS } from '../assets/js/pack-details.js'
 import {
   fetchPacks, resetPacksCache,
   getSpecsHtml, renderStickIcons,
 } from '../assets/js/packs.js'
 
+const MOCK_PACKS = [
+  { sku: 'mach-one-3-pack', name: '3-Pack', weight: '2 lb 7 oz', sticks: 3, desc: 'Lightest setup.' },
+  { sku: 'mach-one-4-pack', name: '4-Pack', weight: '3 lb 4 oz', sticks: 4, desc: 'The sweet spot.' },
+  { sku: 'mach-one-5-pack', name: '5-Pack', weight: '4 lb 1 oz', sticks: 5, desc: 'Maximum reach.' },
+]
+
+beforeEach(() => {
+  document.body.innerHTML = `<script id="pack-data" type="application/json">${JSON.stringify(MOCK_PACKS)}</script>`
+})
+
 afterEach(() => {
   vi.restoreAllMocks()
   resetPacksCache()
-})
-
-describe('PACK_DETAILS', () => {
-  it('has three packs with static specs and no prices', () => {
-    expect(PACK_DETAILS).toHaveLength(3)
-    expect(PACK_DETAILS[0].sku).toBe('mach-one-3-pack')
-    expect(PACK_DETAILS[0].name).toBe('3-Pack')
-    expect(PACK_DETAILS[0].sticks).toBe(3)
-    expect(PACK_DETAILS[0].weight).toBe('2 lb 7 oz')
-    expect(PACK_DETAILS[0].climb).toBe('~12 ft')
-    expect(PACK_DETAILS[0]).not.toHaveProperty('price')
-    expect(PACK_DETAILS[1].sku).toBe('mach-one-4-pack')
-    expect(PACK_DETAILS[1].sticks).toBe(4)
-    expect(PACK_DETAILS[2].sku).toBe('mach-one-5-pack')
-    expect(PACK_DETAILS[2].sticks).toBe(5)
-  })
 })
 
 describe('resetPacksCache', () => {
@@ -119,12 +112,11 @@ describe('fetchPacks', () => {
 
 describe('getSpecsHtml', () => {
   it('returns HTML list items for a pack', () => {
-    const pack = { sticks: 4, weight: '3 lb 4 oz', climb: '~16 ft' }
+    const pack = { sticks: 4, weight: '3 lb 4 oz' }
     const html = getSpecsHtml(pack)
     expect(html).toContain('>4<')
     expect(html).toContain('carbon fiber sticks')
     expect(html).toContain('3 lb 4 oz')
-    expect(html).toContain('~16 ft')
     expect(html).toContain('Daisy chain rope attachment')
     expect(html).toMatch(/^<li>/)
     expect(html).toMatch(/<\/li>$/u)

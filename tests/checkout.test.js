@@ -7,9 +7,19 @@ import {
   getConfirmPaymentOutcome, validateEmail, getShippingFields,
   buildShippingAddress, createPaymentAppearance, createPaymentFields,
   createPaymentFieldsDefault, renderSuccessConfirmation, setSubmitButton,
-  showError, mergePackData, PACK_DETAILS,
+  showError, mergePackData, getPackDetails,
   initCheckout, renderStickIcons, getSpecsHtml
 } from '../assets/js/checkout.js'
+
+const MOCK_PACKS = [
+  { sku: 'mach-one-3-pack', name: '3-Pack', weight: '2 lb 7 oz', sticks: 3, desc: 'Lightest setup.' },
+  { sku: 'mach-one-4-pack', name: '4-Pack', weight: '3 lb 4 oz', sticks: 4, desc: 'The sweet spot.' },
+  { sku: 'mach-one-5-pack', name: '5-Pack', weight: '4 lb 1 oz', sticks: 5, desc: 'Maximum reach.' },
+]
+
+beforeEach(() => {
+  document.body.innerHTML = `<script id="pack-data" type="application/json">${JSON.stringify(MOCK_PACKS)}</script>`
+})
 
 describe('getConfirmPaymentOutcome', () => {
   it('returns error when confirmResult has an error', () => {
@@ -254,17 +264,6 @@ describe('setSubmitButton', () => {
   })
 })
 
-describe('PACK_DETAILS', () => {
-  it('has three packs with static specs and skus', () => {
-    expect(PACK_DETAILS).toHaveLength(3)
-    expect(PACK_DETAILS[0].sku).toBe('mach-one-3-pack')
-    expect(PACK_DETAILS[0].name).toBe('3-Pack')
-    expect(PACK_DETAILS[0].sticks).toBe(3)
-    expect(PACK_DETAILS[0].weight).toBe('2 lb 7 oz')
-    expect(PACK_DETAILS[0].climb).toBe('~12 ft')
-  })
-})
-
 describe('mergePackData', () => {
   it('merges API packs with local PACK_DETAILS by index', () => {
     const apiPacks = [
@@ -421,9 +420,9 @@ describe('initCheckout', () => {
 describe('checkout init flow integration (jsdom)', () => {
   const MOCK_DATA = {
     packs: [
-      { sku: 'mach-one-3-pack', name: '3-Pack', price: 199, weight: '2 lb 7 oz', sticks: 3, climb: '~12 ft', desc: '', stripePriceId: 'price_a' },
-      { sku: 'mach-one-4-pack', name: '4-Pack', price: 249, weight: '3 lb 4 oz', sticks: 4, climb: '~16 ft', desc: '', stripePriceId: 'price_b' },
-      { sku: 'mach-one-5-pack', name: '5-Pack', price: 299, weight: '4 lb 1 oz', sticks: 5, climb: '~20 ft', desc: '', stripePriceId: 'price_c' },
+      { sku: 'mach-one-3-pack', name: '3-Pack', price: 199, weight: '2 lb 7 oz', sticks: 3, desc: '', stripePriceId: 'price_a' },
+      { sku: 'mach-one-4-pack', name: '4-Pack', price: 249, weight: '3 lb 4 oz', sticks: 4, desc: '', stripePriceId: 'price_b' },
+      { sku: 'mach-one-5-pack', name: '5-Pack', price: 299, weight: '4 lb 1 oz', sticks: 5, desc: '', stripePriceId: 'price_c' },
     ],
     clientSecret: 'pi_123_secret_abc',
   }
@@ -530,7 +529,7 @@ describe('checkout init flow integration (jsdom)', () => {
 
       var params = new URLSearchParams(window.location.search)
       var packIndex = parseInt(params.get('pack')) || 2
-      if (packIndex < 1 || packIndex > PACK_DETAILS.length) packIndex = 2
+      if (packIndex < 1 || packIndex > getPackDetails().length) packIndex = 2
 
       resultEl.innerHTML = '<p style="color:#ccc">Loading…</p>'
       submitBtn.disabled = true

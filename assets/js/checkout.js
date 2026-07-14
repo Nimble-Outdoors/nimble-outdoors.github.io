@@ -8,8 +8,8 @@ export const STRIPE_PK = TEST_MODE
 
 export const IS_TEST_MODE = TEST_MODE
 
-export { PACK_DETAILS } from './pack-details.js'
-import { PACK_DETAILS as _PACK_DETAILS } from './pack-details.js'
+export { getPackDetails } from './pack-details.js'
+import { getPackDetails as _getPackDetails } from './pack-details.js'
 export { getSpecsHtml, renderStickIcons } from './packs.js'
 
 export function getConfirmPaymentOutcome(confirmResult) {
@@ -126,7 +126,7 @@ export async function initCheckout(packIndex, email, promoCode) {
 
 export function mergePackData(apiPacks) {
   return apiPacks.map(function(p, i) {
-    var detail = _PACK_DETAILS[i];
+    var detail = _getPackDetails()[i];
     return detail ? Object.assign({}, detail, p) : p;
   });
 }
