@@ -1,0 +1,21 @@
+// ============================================
+// HEADER
+// ============================================
+
+.site-header {
+  background-color: var(--color-bg);
+  box-shadow: 0 2px 4px var(--color-shadow);
+
+  .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.9375rem 1.25rem;
+  }
+}
+
+.logo img {
+  display: block;
+  height: 5.0em;
+  width: auto;
+}

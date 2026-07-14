@@ -1,0 +1,86 @@
+// ============================================
+// BASE — Reset, Typography, Container, Buttons
+// ============================================
+
+* {
+  padding: 0;
+  box-sizing: border-box;
+  margin: 0;
+}
+
+html, body {
+  background: var(--color-bg);
+}
+
+body {
+  font-family: var(--font-body);
+  color: var(--color-text);
+  line-height: 1.6;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  font-weight: 500;
+  line-height: 1.2;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+.container {
+  width: 95%;
+  max-width: 75rem;
+  margin: 0 auto;
+}
+
+// ============================================
+// BUTTONS
+// ============================================
+
+.btn {
+  display: inline-block;
+  padding: 12px 28px;
+  border-radius: 4px;
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-primary {
+  background-color: var(--color-primary);
+  color: var(--color-text);
+  border: none;
+
+  &:hover {
+    background-color: var(--color-primary-dark);
+  }
+}
+
+.btn-secondary {
+  background: #333;
+  color: var(--color-text);
+  border: 1px solid #555;
+  padding: 0.75rem 1.25rem;
+  border-radius: 4px;
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.25s ease;
+  white-space: nowrap;
+
+  &:hover {
+    background: #444;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+}

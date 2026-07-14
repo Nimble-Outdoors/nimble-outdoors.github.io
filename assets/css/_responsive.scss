@@ -1,0 +1,249 @@
+// ============================================
+// RESPONSIVE — All media queries grouped
+// ============================================
+
+// --------------------------------------------
+// Mobile: max-width 768px
+// --------------------------------------------
+
+@media (max-width: 768px) {
+  // Nav Sections
+  .nav-section {
+    padding: 80px 0;
+
+    h2 {
+      font-size: 2.25rem;
+    }
+
+    p {
+      font-size: 1.05rem;
+    }
+  }
+
+  // Forms
+  .form-row {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .form-group-cvv {
+    max-width: none;
+  }
+
+  // Hero
+  .hero-content h1 {
+    font-size: 2.5rem;
+    color: red;
+  }
+
+  .hero-title h1 {
+    font-size: 2.5rem;
+    margin-bottom: 0;
+  }
+
+  .hero-overlay-card {
+    position: absolute;
+    top: 12vh;
+    left: 0;
+    right: 0;
+    transform: none;
+    width: auto;
+    max-width: none;
+    padding: 2rem 1.5rem;
+    text-align: center;
+  }
+
+  .hero-overlay-card h2 {
+    font-size: 2.5rem;
+  }
+
+  .hero-overlay-desc {
+    font-size: 0.85rem;
+  }
+
+  // Features & CTA
+  .features h2,
+  .cta-section h2 {
+    font-size: 2rem;
+  }
+
+  // Footer
+  .footer-grid {
+    grid-template-columns: 1fr;
+    text-align: center;
+    gap: 30px;
+  }
+
+  .footer-contact,
+  .footer-links {
+    text-align: center;
+  }
+
+  // Shop A & B
+  .shop-hero h1,
+  .shop-b-hero h1 {
+    font-size: 2rem;
+  }
+
+  .product-price {
+    font-size: 1.75rem;
+  }
+
+  // Shop C
+  .shop-c-display {
+    grid-template-columns: 1fr;
+    gap: 30px;
+    text-align: center;
+  }
+
+  .shop-c-display-stats {
+    justify-content: center;
+  }
+
+  .shop-c-features-grid {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+
+  .shop-c-story-inner {
+    grid-template-columns: 1fr;
+    gap: 30px;
+    text-align: center;
+  }
+
+  .shop-c-selector h2 {
+    font-size: 1.5rem;
+  }
+
+  .shop-c-toggles {
+    max-width: 280px;
+    margin: 0 auto 25px;
+  }
+
+  // Forms (checkout)
+  .form-group-half,
+  .form-group-quarter {
+    flex: 1 1 100%;
+  }
+}
+
+// --------------------------------------------
+// Tablet: max-width 900px
+// --------------------------------------------
+
+@media (max-width: 900px) {
+  // Shop B
+  .packs-compare {
+    grid-template-columns: 1fr;
+    max-width: 450px;
+    margin: 0 auto;
+  }
+
+  // Product Page
+  .product-grid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .product-gallery {
+    position: static;
+    margin-left: -1.25rem;
+    margin-right: -1.25rem;
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+  }
+
+  .product-thumbnails {
+    flex-direction: row;
+    width: 100%;
+    max-height: none;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+
+  .product-thumb {
+    width: 60px;
+    height: 60px;
+  }
+
+  .product-main-image {
+    aspect-ratio: 4 / 3;
+  }
+
+  .product-info-title {
+    font-size: 2rem;
+  }
+
+  .product-stats {
+    justify-content: center;
+  }
+
+  // Checkout
+  .checkout-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .checkout-pack-card {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .checkout-selected-details {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .checkout-section h2 {
+    font-size: 2rem;
+  }
+}
+
+// --------------------------------------------
+// Mobile Small: max-width 480px
+// --------------------------------------------
+
+@media (max-width: 480px) {
+  // Product Page
+  .product-gallery {
+    flex-direction: column-reverse;
+    margin-left: -1.25rem;
+    margin-right: -1.25rem;
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+  }
+
+  .product-thumbnails {
+    flex-direction: row;
+    justify-content: center;
+  }
+
+  .product-thumb {
+    width: 50px;
+    height: 50px;
+  }
+
+  .product-arrow {
+    width: 32px;
+    height: 32px;
+    font-size: 1.2rem;
+    bottom: 0.75rem;
+  }
+
+  .product-arrow--prev {
+    transform: translateX(calc(-50% - 1.25rem));
+  }
+
+  .product-arrow--next {
+    transform: translateX(calc(-50% + 1.25rem));
+  }
+}
+
+// --------------------------------------------
+// Desktop Large: min-width 1200px
+// --------------------------------------------
+
+@media (min-width: 1200px) {
+  .hero-content p {
+    max-width: 1100px;
+  }
+}

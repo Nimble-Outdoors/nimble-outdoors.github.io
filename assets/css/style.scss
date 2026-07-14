@@ -1,0 +1,45 @@
+---
+# Jekyll processes this SCSS file
+---
+
+// ============================================
+// NIMBLE OUTDOORS — Main Stylesheet
+// ============================================
+// Order matters: variables first, then base styles,
+// components, and finally responsive overrides.
+
+// Variables & Settings
+@use 'variables';
+
+// Base Styles
+@use 'base';
+
+// Layout Components
+@use 'header';
+@use 'footer';
+
+// Page Sections
+@use 'hero';
+@use 'features';
+@use 'cta';
+@use 'nav-sections';
+
+// Forms
+@use 'forms';
+
+// Shop Variants
+@use 'shop-a';
+@use 'shop-b';
+@use 'shop-c';
+
+// Product Page
+@use 'product-page';
+
+// Checkout
+@use 'checkout';
+
+// Utilities
+@use 'loading';
+
+// Responsive (always last)
+@use 'responsive';

@@ -1,0 +1,327 @@
+// ============================================
+// SHOP C — Immersive Single Product Page
+// ============================================
+
+// --------------------------------------------
+// Selector Section
+// --------------------------------------------
+
+.shop-c-selector {
+  padding: 3.75rem 0 5rem;
+  background: var(--color-bg-alt);
+
+  h2 {
+    font-size: 2rem;
+    color: var(--color-primary);
+    margin-bottom: 1.875rem;
+  }
+}
+
+.shop-c-toggles {
+  display: flex;
+  gap: 0.25rem;
+  background: #1a1a1a;
+  border-radius: 8px;
+  padding: 0.25rem;
+  max-width: 21.25rem;
+  margin-bottom: 1.5625rem;
+}
+
+.shop-c-toggle {
+  flex: 1;
+  padding: 0.75rem 1.25rem;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--color-text-light);
+  font-family: var(--font-heading);
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+
+  &.active {
+    background: var(--color-primary);
+    color: var(--color-text);
+  }
+
+  &:hover:not(.active) {
+    color: var(--color-text);
+  }
+}
+
+// --------------------------------------------
+// Display Area
+// --------------------------------------------
+
+.shop-c-display {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2.5rem;
+  align-items: center;
+  max-width: 50rem;
+  margin: 0 auto;
+  text-align: left;
+}
+
+.shop-c-display-visual {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.shop-c-display-sticks {
+  display: flex;
+  gap: 0.875rem;
+  align-items: flex-end;
+  height: 200px;
+}
+
+.shop-c-display-stick {
+  display: inline-block;
+  width: 28px;
+  height: 180px;
+  background: linear-gradient(to top, var(--color-primary), rgba(46,125,50,0.35));
+  border-radius: 4px 4px 2px 2px;
+  transition: height 0.4s ease;
+  animation: stickIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+
+  @for $i from 1 through 5 {
+    &:nth-child(#{$i}) {
+      animation-delay: #{$i * 0.08}s;
+    }
+  }
+}
+
+@keyframes stickIn {
+  from { height: 0; opacity: 0; }
+  to { height: 180px; opacity: 1; }
+}
+
+.shop-c-display-desc {
+  font-size: 1.1rem;
+  color: var(--color-text-light);
+  line-height: 1.5;
+  margin-bottom: 1.5625rem;
+}
+
+.shop-c-display-stats {
+  display: flex;
+  gap: 1.875rem;
+  margin-bottom: 1.5625rem;
+}
+
+.shop-c-stat {
+  text-align: center;
+}
+
+.shop-c-stat-value {
+  display: block;
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.shop-c-stat-label {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--color-text-light);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 0.25rem;
+}
+
+.shop-c-display-price {
+  font-family: var(--font-heading);
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  margin-bottom: 1.25rem;
+}
+
+// --------------------------------------------
+// Features Grid
+// --------------------------------------------
+
+.shop-c-features {
+  padding: 5rem 0;
+  background: var(--color-bg);
+}
+
+.shop-c-features-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2.5rem;
+  max-width: 50rem;
+  margin: 0 auto;
+}
+
+.shop-c-feature {
+  text-align: center;
+
+  h3 {
+    font-size: 1.15rem;
+    color: var(--color-text);
+    margin-bottom: 0.5rem;
+  }
+
+  p {
+    font-size: 0.9rem;
+    color: var(--color-text-light);
+    line-height: 1.5;
+    max-width: 18.75rem;
+    margin: 0 auto;
+  }
+}
+
+.shop-c-feature-icon {
+  margin-bottom: 0.9375rem;
+  display: flex;
+  justify-content: center;
+}
+
+// --------------------------------------------
+// Story Section
+// --------------------------------------------
+
+.shop-c-story {
+  padding: 5rem 0;
+  background: var(--color-bg-alt);
+}
+
+.shop-c-story-inner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3.75rem;
+  align-items: center;
+  max-width: 56.25rem;
+  margin: 0 auto;
+}
+
+.shop-c-story-content h2 {
+  font-size: 2rem;
+  color: var(--color-primary);
+  margin-bottom: 1.25rem;
+}
+
+.shop-c-story-content p {
+  color: var(--color-text-light);
+  line-height: 1.7;
+  margin-bottom: 1rem;
+  font-size: 1rem;
+}
+
+.shop-c-story-visual {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.shop-c-story-sticks {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-end;
+  height: 240px;
+}
+
+.shop-c-story-stick {
+  display: inline-block;
+  width: 32px;
+  height: 220px;
+  background: linear-gradient(to top, var(--color-primary), rgba(46,125,50,0.3));
+  border-radius: 4px 4px 2px 2px;
+  opacity: 0.6;
+
+  &:nth-child(1) { height: 160px; }
+  &:nth-child(2) { height: 200px; }
+  &:nth-child(3) { height: 220px; }
+}
+
+// --------------------------------------------
+// Specs
+// --------------------------------------------
+
+.shop-c-specs {
+  padding: 3.75rem 0;
+  background: var(--color-bg);
+  text-align: center;
+
+  h2 {
+    font-size: 1.75rem;
+    color: var(--color-primary);
+    margin-bottom: 1.875rem;
+  }
+}
+
+.shop-c-specs-table {
+  max-width: 28.75rem;
+  margin: 0 auto;
+  border-collapse: collapse;
+
+  tr {
+    border-bottom: 1px solid #333;
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+
+  td {
+    padding: 14px 20px;
+    font-size: 0.95rem;
+    text-align: left;
+
+    &:first-child {
+      color: var(--color-text-light);
+      width: 50%;
+    }
+
+    &:last-child {
+      color: var(--color-text);
+      font-weight: 600;
+      text-align: right;
+    }
+  }
+}
+
+// --------------------------------------------
+// CTA Section
+// --------------------------------------------
+
+.shop-c-cta {
+  padding: 5rem 0;
+  background: var(--color-bg-alt);
+  text-align: center;
+
+  h2 {
+    font-size: 2rem;
+    color: var(--color-primary);
+    margin-bottom: 1.875rem;
+  }
+}
+
+.shop-c-cta-selector {
+  margin-bottom: 1.5625rem;
+}
+
+.shop-c-toggle--sm {
+  flex: none;
+  padding: 0.625rem 1.5rem;
+  font-size: 0.85rem;
+}
+
+.shop-c-cta-price {
+  font-family: var(--font-heading);
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  margin-bottom: 1.5625rem;
+}
+
+.shop-c-cta-note {
+  font-size: 0.9rem;
+  color: var(--color-text-light);
+}

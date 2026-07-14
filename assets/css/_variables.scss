@@ -1,0 +1,28 @@
+// ============================================
+// VARIABLES
+// ============================================
+// Two-color brand design: forest green + dark backgrounds
+
+:root {
+  // Primary - Forest Green
+  --color-primary: #2E7D32;
+  --color-primary-dark: #256B28;
+
+  // Secondary - Warm Orange
+  --color-secondary: black;
+  --color-secondary-dark: #E0763B;
+
+  // Neutrals
+  --color-text: #FFF;
+  --color-text-light: #CCC;
+  --color-bg: #000;
+  --color-bg-alt: #222;
+
+  // Shadows
+  --color-shadow: rgba(0, 0, 0, 0.1);
+  --color-shadow-light: rgba(0, 0, 0, 0.05);
+
+  // Fonts
+  --font-heading: 'Oswald', sans-serif;
+  --font-body: 'Roboto', sans-serif;
+}
