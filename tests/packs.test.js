@@ -116,8 +116,6 @@ describe('getSpecsHtml', () => {
     const html = getSpecsHtml(pack)
     expect(html).toContain('>4<')
     expect(html).toContain('carbon fiber sticks')
-    expect(html).toContain('3 lb 4 oz')
-    expect(html).toContain('Daisy chain rope attachment')
     expect(html).toMatch(/^<li>/)
     expect(html).toMatch(/<\/li>$/u)
   })

@@ -34,6 +34,23 @@
   letter-spacing: 1px;
 }
 
+.checkout-order-visual {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.checkout-order-image {
+  display: block;
+  max-width: 208px;
+}
+
+.checkout-order-logo {
+  display: block;
+  max-width: 160px;
+}
+
 .checkout-product-card {
   background: var(--color-bg-alt);
   border: 1px solid #333;

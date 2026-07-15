@@ -24,8 +24,6 @@ export async function fetchPacks() {
 export function getSpecsHtml(pack) {
   return [
     `<li><strong>${pack.sticks}</strong> carbon fiber sticks</li>`,
-    `<li><strong>${pack.weight}</strong> total weight</li>`,
-    `<li>Daisy chain rope attachment</li>`,
   ].join('')
 }
 

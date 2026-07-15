@@ -97,10 +97,8 @@ image: /assets/images/mach-one-single-full-stick.png
 
       <!-- Product Info -->
       <div class="product-info">
-        <p class="product-info-sku">Nimble Outdoors</p>
         <h1 class="product-info-title">Mach One<br>Climbing Sticks</h1>
-        <p class="product-info-tagline">Lightest. Fastest. Carbon Fiber.</p>
-        <p class="product-info-desc">13 oz per stick. 20 inches. 5-inch stand-off. Hand crafted in western Wisconsin. The daisy chain system means you're set up in seconds.</p>
+        <p class="product-info-desc">13 oz per stick. 20 inches. 5-inch stand-off. Handcrafted in western Wisconsin. The daisy chain system means you're set up in seconds.</p>
 
         <div class="product-pack-selector" id="selector">
           <h3>Choose Your Pack</h3>
@@ -109,7 +107,6 @@ image: /assets/images/mach-one-single-full-stick.png
             <button class="product-pack-toggle active" data-index="1">4-Pack</button>
             <button class="product-pack-toggle" data-index="2">5-Pack</button>
           </div>
-          <p class="product-pack-desc" id="packDesc"></p>
         </div>
 
         <div class="product-stats">
@@ -118,7 +115,7 @@ image: /assets/images/mach-one-single-full-stick.png
             <span class="product-stat-label">Sticks</span>
           </div>
           <div class="product-stat">
-            <span class="product-stat-value" id="packWeight">{{ site.data.packs[1].weight }}</span>
+            <span class="product-stat-value" id="packWeight">3 lb 3 oz</span>
             <span class="product-stat-label">Total Weight</span>
           </div>
 
@@ -126,21 +123,6 @@ image: /assets/images/mach-one-single-full-stick.png
 
         <p class="product-price loading-shimmer loading-shimmer--lg" id="packPrice"></p>
         <a href="/checkout.html?pack=2" class="btn btn-primary product-order-btn" id="orderLink">Checkout</a>
-
-        <div class="product-trust">
-          <div class="product-trust-item">
-            <span class="product-trust-icon">&#9733;</span>
-            <span>Hand Crafted in Wisconsin</span>
-          </div>
-          <div class="product-trust-item">
-            <span class="product-trust-icon">&#9878;</span>
-            <span>Carbon Fiber Composite</span>
-          </div>
-          <div class="product-trust-item">
-            <span class="product-trust-icon">&#10003;</span>
-            <span>Daisy Chain Attachment</span>
-          </div>
-        </div>
       </div>
 
     </div>
@@ -150,16 +132,42 @@ image: /assets/images/mach-one-single-full-stick.png
 <!-- Specifications -->
 <section class="shop-c-specs">
   <div class="container">
-    <h2>Specifications</h2>
-    <table class="shop-c-specs-table">
-      <tr><td>Weight Per Stick</td><td>{{ site.data.stick.weight }}</td></tr>
-      <tr><td>Stick Length</td><td>{{ site.data.stick.length }}</td></tr>
-      <tr><td>Stand-off</td><td>{{ site.data.stick.standoff }}</td></tr>
-      <tr><td>Weight Capacity</td><td>{{ site.data.stick.weight_capacity }}</td></tr>
-      <tr><td>Step Width</td><td>{{ site.data.stick.step }}</td></tr>
-      <tr><td>Material</td><td>{{ site.data.stick.material }}</td></tr>
-      <tr><td>Attachment</td><td>{{ site.data.stick.attachment }}</td></tr>
-    </table>
+    <div class="shop-c-specs-grid">
+      <div class="shop-c-specs-desc">
+        <h2>Description</h2>
+        <div class="shop-c-story-features">
+          <div class="shop-c-story-feature">
+            <h3>{{ site.data.stick.weight }} Per Stick</h3>
+            <p>Hand laid {{ site.data.stick.material | downcase }}. Lighter than anything on the market without sacrificing strength.</p>
+          </div>
+          <div class="shop-c-story-feature">
+            <h3>{{ site.data.stick.standoff }} Stand-off</h3>
+            <p>Deep stand-off means your foot has room. Climb comfortably even in bulky boots.</p>
+          </div>
+          <div class="shop-c-story-feature">
+            <h3>{{ site.data.stick.length }} Length</h3>
+            <p>The optimal balance of step height and packability. You won't find a better climbing stick on the market.</p>
+          </div>
+          <div class="shop-c-story-feature">
+            <h3>{{ site.data.stick.attachment | capitalize }}</h3>
+            <p>Zip, zip, done. The daisy chain attachment system is faster than any strap or button. No going back.</p>
+          </div>
+        </div>
+        <p>Whether you're running 3 sticks for a quick evening hunt or packing 5 for a deep woods saddle hunt — these sticks will change how you climb.</p>
+      </div>
+      <div class="shop-c-specs-table-wrap">
+        <h2>Specifications</h2>
+        <table class="shop-c-specs-table">
+          <tr><td>Weight Per Stick</td><td>{{ site.data.stick.weight }}</td></tr>
+          <tr><td>Stick Length</td><td>{{ site.data.stick.length }}</td></tr>
+          <tr><td>Stand-off</td><td>{{ site.data.stick.standoff }}</td></tr>
+          <tr><td>Weight Capacity</td><td>{{ site.data.stick.weight_capacity }}</td></tr>
+          <tr><td>Step Width</td><td>{{ site.data.stick.step }}</td></tr>
+          <tr><td>Material</td><td>{{ site.data.stick.material }}</td></tr>
+          <tr><td>Attachment</td><td>{{ site.data.stick.attachment }}</td></tr>
+        </table>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -169,6 +177,7 @@ image: /assets/images/mach-one-single-full-stick.png
 
   var packs = [];
   var selected = 1;
+  var stickWeightOz = {{ site.data.stick.weight | remove: " oz" | times: 1.0 }};
 
   // Image carousel
   var currentImage = 0;
@@ -228,9 +237,11 @@ image: /assets/images/mach-one-single-full-stick.png
       el.classList.toggle("active", parseInt(el.dataset.index) === index);
     });
 
-    document.getElementById("packDesc").textContent = pack.desc;
     document.getElementById("packSticks").textContent = pack.sticks;
-    document.getElementById("packWeight").textContent = pack.weight;
+    var totalOz = stickWeightOz * pack.sticks;
+    var lb = Math.floor(totalOz / 16);
+    var oz = Math.round(totalOz % 16);
+    document.getElementById("packWeight").textContent = lb > 0 ? lb + " lb " + oz + " oz" : oz + " oz";
     document.getElementById("packPrice").textContent = "$" + pack.price;
     document.getElementById("packPrice").classList.remove("loading-shimmer", "loading-shimmer--lg");
     var ctaPrice = document.getElementById("ctaPrice");

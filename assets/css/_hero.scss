@@ -39,6 +39,8 @@
   z-index: 2;
   color: #fff;
   padding: 0 1.25rem;
+  margin-right: auto;
+  text-align: left;
 
   h1 {
     font-size: 4rem;
@@ -49,7 +51,6 @@
   p {
     font-size: 1.75rem;
     max-width: 56.25rem;
-    margin: 0 auto;
     text-shadow: 0 2px 8px rgba(0,0,0,0.5);
   }
 }
@@ -90,6 +91,11 @@
   margin-bottom: 1rem;
 }
 
+.hero-mach-one-logo {
+  width: 50%;
+  height: auto;
+}
+
 .hero-overlay-desc {
   font-size: 1.1rem;
   color: var(--color-text-light);
@@ -103,6 +109,20 @@
   right: 15%;
   z-index: 2;
   text-align: right;
+
+  .hero-overlay-card {
+    position: static;
+    width: auto;
+    max-width: none;
+    text-align: right;
+    padding: 0;
+    margin-bottom: 1rem;
+  }
+
+  .hero-mach-one-logo {
+    width: 40%;
+    margin-left: auto;
+  }
 
   h2 {
     font-size: 3.5rem;

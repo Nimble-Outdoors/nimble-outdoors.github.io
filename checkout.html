@@ -11,15 +11,15 @@ description: "Complete your order for Nimble Climbing Sticks"
       <div class="checkout-summary">
         <h3>Your Order</h3>
         <div class="checkout-product-card">
-          <div class="checkout-stick-visual" id="cartSticks"></div>
+          <div class="checkout-order-visual">
+            <img src="/assets/images/mach_one_logo.png" alt="Mach One Logo" class="checkout-order-logo">
+            <img src="/assets/images/mach-one-single-full-stick.png" alt="Nimble Mach One Climbing Stick" class="checkout-order-image">
+          </div>
           <div class="checkout-product-info">
             <h4 id="cartName">Nimble Climbing Sticks — {{ site.data.packs[1].name }}</h4>
             <p class="checkout-product-price loading-shimmer loading-shimmer--lg" id="cartPrice"></p>
             <ul class="checkout-product-specs" id="cartSpecs">
               <li><strong>{{ site.data.packs[1].sticks }}</strong> carbon fiber sticks</li>
-              <li><strong>{{ site.data.packs[1].weight }}</strong> total weight</li>
-
-              <li>Daisy chain rope attachment</li>
             </ul>
           </div>
         </div>
@@ -124,7 +124,6 @@ description: "Complete your order for Nimble Climbing Sticks"
   }
 
   function renderOrderSummary(pack, discountInfo) {
-    renderStickIcons(document.getElementById('cartSticks'), pack.sticks, 'checkout-stick-icon')
     document.getElementById('cartName').textContent = 'Nimble Climbing Sticks \u2014 ' + pack.name
     document.getElementById('cartPrice').classList.remove('loading-shimmer', 'loading-shimmer--lg')
     if (discountInfo) {
