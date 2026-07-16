@@ -58,10 +58,10 @@
 
   .hero-overlay-cta {
     position: absolute;
-    top: 60vh;
+    top: auto;
+    bottom: 8vh;
     left: 0;
     right: 0;
-    bottom: auto;
     text-align: center;
     padding: 0 1.5rem;
 
@@ -172,7 +172,6 @@
 
   .product-main-image {
     aspect-ratio: 4 / 3;
-    max-height: 55vh;
   }
 
   .product-info {
@@ -239,6 +238,7 @@
   }
 
   .hero-overlay-cta {
+    bottom: 6vh;
     padding: 0 1rem;
 
     h2 {
@@ -252,10 +252,6 @@
 
   .cta-section h2 {
     font-size: 1.5rem;
-  }
-
-  .product-main-image {
-    max-height: 50vh;
   }
 
   .product-arrow {
