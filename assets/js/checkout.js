@@ -1,6 +1,6 @@
 export const WORKER_URL = 'https://nimble-stripe.joey-956.workers.dev'
 
-const TEST_MODE = true
+const TEST_MODE = typeof window !== 'undefined' && window.location.hostname === 'localhost'
 const CHECKOUT_TIMEOUT_MS = 10_000
 
 export const STRIPE_PK = TEST_MODE
@@ -12,6 +12,7 @@ export const IS_TEST_MODE = TEST_MODE
 export { getPackDetails } from './pack-details.js'
 import { getPackDetails as _getPackDetails } from './pack-details.js'
 export { getSpecsHtml, renderStickIcons } from './packs.js'
+import { getSpecsHtml } from './packs.js'
 
 export function getConfirmPaymentOutcome(confirmResult) {
   if (confirmResult.error) {
@@ -141,6 +142,29 @@ export function mergePackData(apiPacks) {
     const detail = details[i]
     return detail ? Object.assign({}, detail, p) : p
   })
+}
+
+export function updatePriceDisplay(pack, discount) {
+  const priceEl = document.getElementById('cartPrice')
+  priceEl.classList.remove('loading-shimmer', 'loading-shimmer--lg')
+  if (discount) {
+    const discounted = pack.price - discount.amount
+    priceEl.innerHTML =
+      '<span style="text-decoration:line-through;opacity:0.5;margin-right:10px">$' + pack.price.toFixed(2) + '</span> ' +
+      '<span style="color:#4CAF50">$' + discounted.toFixed(2) + '</span>'
+  } else {
+    priceEl.textContent = '$' + pack.price.toFixed(2)
+  }
+}
+
+export function renderOrderSummary(pack, discountInfo) {
+  document.getElementById('cartName').textContent = pack.name
+  document.getElementById('cartPrice').classList.remove('loading-shimmer', 'loading-shimmer--lg')
+  if (discountInfo) {
+    updatePriceDisplay(pack, discountInfo)
+  } else {
+    document.getElementById('cartPrice').textContent = '$' + pack.price.toFixed(2)
+  }
 }
 
 export function showError(resultEl, message) {

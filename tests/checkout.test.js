@@ -8,7 +8,8 @@ import {
   buildShippingAddress, createPaymentAppearance, createPaymentFields,
   createPaymentFieldsDefault, renderSuccessConfirmation, setSubmitButton,
   showError, mergePackData, getPackDetails,
-  initCheckout, renderStickIcons, getSpecsHtml
+  initCheckout, renderStickIcons, getSpecsHtml,
+  renderOrderSummary, updatePriceDisplay
 } from '../assets/js/checkout.js'
 
 const MOCK_PACKS = [
@@ -613,6 +614,38 @@ describe('showError', () => {
     showError(el, 'Something went wrong')
     expect(el.innerHTML).toContain('Something went wrong')
     expect(el.innerHTML).toContain('#ff6b6b')
+  })
+})
+
+describe('renderOrderSummary', () => {
+  const PACK = { name: '4-Pack', price: 249.00, sticks: 4, weight: '3 lb 4 oz', desc: 'The sweet spot.' }
+
+  beforeEach(() => {
+    document.body.innerHTML = `
+      <h4 id="cartName"></h4>
+      <p class="checkout-product-price loading-shimmer loading-shimmer--lg" id="cartPrice"></p>
+    `
+  })
+
+  it('renders pack name and price without crashing', () => {
+    expect(() => renderOrderSummary(PACK, null)).not.toThrow()
+    expect(document.getElementById('cartName').textContent).toBe('4-Pack')
+    expect(document.getElementById('cartPrice').textContent).toBe('$249.00')
+  })
+
+  it('removes loading shimmer classes from cartPrice', () => {
+    renderOrderSummary(PACK, null)
+    const el = document.getElementById('cartPrice')
+    expect(el.classList.contains('loading-shimmer')).toBe(false)
+    expect(el.classList.contains('loading-shimmer--lg')).toBe(false)
+  })
+
+  it('shows discounted price when discount is provided', () => {
+    const discount = { amount: 24.90, label: '10% off' }
+    renderOrderSummary(PACK, discount)
+    const priceEl = document.getElementById('cartPrice')
+    expect(priceEl.innerHTML).toContain('line-through')
+    expect(priceEl.innerHTML).toContain('$224.10')
   })
 })
 

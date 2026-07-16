@@ -16,11 +16,8 @@ description: "Complete your order for Nimble Climbing Sticks"
             <img src="/assets/images/mach-one-single-full-stick.png" alt="Nimble Mach One Climbing Stick" class="checkout-order-image">
           </div>
           <div class="checkout-product-info">
-            <h4 id="cartName">Nimble Climbing Sticks — {{ site.data.packs[1].name }}</h4>
+            <h4 id="cartName">{{ site.data.packs[1].name }}</h4>
             <p class="checkout-product-price loading-shimmer loading-shimmer--lg" id="cartPrice"></p>
-            <ul class="checkout-product-specs" id="cartSpecs">
-              <li><strong>{{ site.data.packs[1].sticks }}</strong> carbon fiber sticks</li>
-            </ul>
           </div>
         </div>
       </div>
@@ -124,14 +121,13 @@ description: "Complete your order for Nimble Climbing Sticks"
   }
 
   function renderOrderSummary(pack, discountInfo) {
-    document.getElementById('cartName').textContent = 'Nimble Climbing Sticks \u2014 ' + pack.name
+    document.getElementById('cartName').textContent = pack.name
     document.getElementById('cartPrice').classList.remove('loading-shimmer', 'loading-shimmer--lg')
     if (discountInfo) {
       updatePriceDisplay(pack, discountInfo)
     } else {
       document.getElementById('cartPrice').textContent = '$' + pack.price.toFixed(2)
     }
-    document.getElementById('cartSpecs').innerHTML = getSpecsHtml(pack)
   }
 
   function updatePriceDisplay(pack, discount) {

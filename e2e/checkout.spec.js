@@ -2,13 +2,6 @@ import { test, expect } from '@playwright/test'
 
 const CHECKOUT_URL = '/checkout.html?pack=2'
 
-async function isStripeTestMode(page) {
-  return page.evaluate(async () => {
-    const mod = await import('/assets/js/checkout.js')
-    return mod.STRIPE_PK.startsWith('pk_test_')
-  })
-}
-
 async function waitForCheckout(page) {
   await page.goto(CHECKOUT_URL)
   await expect(page.locator('#cartPrice')).not.toHaveClass(/loading-shimmer/, { timeout: 15000 })
@@ -43,13 +36,12 @@ async function submitForm(page) {
 }
 
 test.describe('checkout form validation', () => {
-  test('shows test mode banner when TEST_MODE is true', async ({ page }) => {
+  test('shows test mode banner', async ({ page }) => {
     await waitForCheckout(page)
-    var isTest = await isStripeTestMode(page)
-    test.skip(!isTest, 'Only shown in test mode')
     await expect(page.locator('#stripeTestModeBanner')).toBeVisible()
     await expect(page.locator('#stripeTestModeBanner')).toContainText('Test Mode')
   })
+
   test('shows error when email is missing', async ({ page }) => {
     await waitForCheckout(page)
     await fillShippingForm(page)
@@ -69,7 +61,6 @@ test.describe('checkout form validation', () => {
 test.describe('Stripe test cards', () => {
   test.beforeEach(async ({ page }) => {
     await waitForCheckout(page)
-    test.skip(!(await isStripeTestMode(page)), 'Requires Stripe pk_test_ key')
     await fillShippingForm(page)
   })
 
@@ -90,7 +81,4 @@ test.describe('Stripe test cards', () => {
     await submitForm(page)
     await expect(stripeFrame(page).getByText(/insufficient/i)).toBeVisible({ timeout: 15000 })
   })
-
-  // 3DS challenge tests require deeper investigation into Stripe's nested iframe interaction.
-  // They complete the challenge via the API but the confirmPayment promise handling needs work.
 })

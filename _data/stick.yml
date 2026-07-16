@@ -1,6 +1,7 @@
 name: Mach One
 weight: 12.8 oz
 length: 20 inches
+step_to_step: 19 inches
 standoff: 4.9 inches
 weight_capacity: 275 lbs
 step: 8.5 inches
