@@ -41,9 +41,12 @@
   padding: 0 1.25rem;
   margin-right: auto;
   text-align: left;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  min-width: 0;
 
   h1 {
-    font-size: 4rem;
+    font-size: clamp(2rem, 8vw, 4rem);
     margin-bottom: 0.5rem;
     text-shadow: 0 2px 12px rgba(0,0,0,0.5);
   }
