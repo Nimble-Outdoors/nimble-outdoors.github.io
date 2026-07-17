@@ -5,6 +5,7 @@
 .checkout-section {
   padding: 3.75rem 0 5rem;
   background: var(--color-bg);
+  overflow: hidden;
 
   h2 {
     text-align: center;
@@ -19,6 +20,10 @@
   grid-template-columns: 1fr 1fr;
   gap: 2.5rem;
   align-items: start;
+
+  > * {
+    min-width: 0;
+  }
 }
 
 // --------------------------------------------
@@ -360,4 +365,8 @@
   input {
     flex: 1;
   }
+}
+
+#stripe-payment-element {
+  max-width: 100%;
 }

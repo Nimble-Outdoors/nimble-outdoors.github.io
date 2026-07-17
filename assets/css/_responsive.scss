@@ -138,6 +138,24 @@
   .form-group-quarter {
     flex: 1 1 100%;
   }
+
+  // Checkout order visual
+  .checkout-order-visual {
+    justify-content: center;
+  }
+
+  .checkout-order-image {
+    max-width: 160px;
+  }
+
+  .checkout-order-logo {
+    max-width: 120px;
+  }
+
+  // Constrain Stripe element
+  #stripe-payment-element {
+    max-width: 100%;
+  }
 }
 
 // --------------------------------------------
