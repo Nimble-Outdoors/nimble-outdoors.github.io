@@ -7,15 +7,18 @@ import {
   getConfirmPaymentOutcome, validateEmail, getShippingFields,
   buildShippingAddress, createPaymentAppearance, createPaymentFields,
   createPaymentFieldsDefault, renderSuccessConfirmation, setSubmitButton,
-  showError, mergePackData, getPackDetails,
+  showError, mergePackData, getPackDetails, findPack,
   initCheckout, renderStickIcons, getSpecsHtml,
   renderOrderSummary, updatePriceDisplay
 } from '../assets/js/checkout.js'
 
 const MOCK_PACKS = [
-  { sku: 'mach-one-3-pack', name: '3-Pack', weight: '2 lb 7 oz', sticks: 3, desc: 'Lightest setup.' },
-  { sku: 'mach-one-4-pack', name: '4-Pack', weight: '3 lb 4 oz', sticks: 4, desc: 'The sweet spot.' },
-  { sku: 'mach-one-5-pack', name: '5-Pack', weight: '4 lb 1 oz', sticks: 5, desc: 'Maximum reach.' },
+  { sku: 'mach-one-3-pack-16-inch', name: '3-Pack', size: 16, sticks: 3 },
+  { sku: 'mach-one-3-pack-20-inch', name: '3-Pack', size: 20, sticks: 3 },
+  { sku: 'mach-one-4-pack-16-inch', name: '4-Pack', size: 16, sticks: 4 },
+  { sku: 'mach-one-4-pack-20-inch', name: '4-Pack', size: 20, sticks: 4 },
+  { sku: 'mach-one-5-pack-16-inch', name: '5-Pack', size: 16, sticks: 5 },
+  { sku: 'mach-one-5-pack-20-inch', name: '5-Pack', size: 20, sticks: 5 },
 ]
 
 beforeEach(() => {
@@ -269,28 +272,38 @@ describe('mergePackData', () => {
   it('merges API packs with local PACK_DETAILS by index', () => {
     const apiPacks = [
       { price: 199, stripePriceId: 'price_a' },
+      { price: 199, stripePriceId: 'price_a2' },
       { price: 249, stripePriceId: 'price_b' },
+      { price: 249, stripePriceId: 'price_b2' },
       { price: 299, stripePriceId: 'price_c' },
+      { price: 299, stripePriceId: 'price_c2' },
     ]
     const result = mergePackData(apiPacks)
 
-    expect(result).toHaveLength(3)
-    expect(result[0].sku).toBe('mach-one-3-pack')
+    expect(result).toHaveLength(6)
+    expect(result[0].sku).toBe('mach-one-3-pack-16-inch')
     expect(result[0].price).toBe(199)
     expect(result[0].stripePriceId).toBe('price_a')
     expect(result[0].sticks).toBe(3)
-    expect(result[0].weight).toBe('2 lb 7 oz')
-    expect(result[1].price).toBe(249)
-    expect(result[1].sticks).toBe(4)
-    expect(result[2].price).toBe(299)
-    expect(result[2].sticks).toBe(5)
+    expect(result[0].size).toBe(16)
+    expect(result[1].price).toBe(199)
+    expect(result[1].sticks).toBe(3)
+    expect(result[1].size).toBe(20)
+    expect(result[2].price).toBe(249)
+    expect(result[2].sticks).toBe(4)
+    expect(result[3].price).toBe(249)
+    expect(result[4].price).toBe(299)
+    expect(result[5].price).toBe(299)
   })
 
   it('overrides name from API if present', () => {
     const apiPacks = [
       { price: 199, stripePriceId: 'price_a', name: 'Custom 3-Pack' },
+      { price: 199, stripePriceId: 'price_a2' },
       { price: 249, stripePriceId: 'price_b' },
+      { price: 249, stripePriceId: 'price_b2' },
       { price: 299, stripePriceId: 'price_c' },
+      { price: 299, stripePriceId: 'price_c2' },
     ]
     const result = mergePackData(apiPacks)
     expect(result[0].name).toBe('Custom 3-Pack')
@@ -307,21 +320,24 @@ describe('mergePackData', () => {
     ]
     const result = mergePackData(apiPacks)
     expect(result).toHaveLength(1)
-    expect(result[0].sku).toBe('mach-one-3-pack')
+    expect(result[0].sku).toBe('mach-one-3-pack-16-inch')
     expect(result[0].price).toBe(199)
   })
 
   it('handles more API packs than details', () => {
     const apiPacks = [
       { price: 199, stripePriceId: 'price_a' },
+      { price: 199, stripePriceId: 'price_a2' },
       { price: 249, stripePriceId: 'price_b' },
+      { price: 249, stripePriceId: 'price_b2' },
       { price: 299, stripePriceId: 'price_c' },
+      { price: 299, stripePriceId: 'price_c2' },
       { price: 399, stripePriceId: 'price_d' },
     ]
     const result = mergePackData(apiPacks)
-    expect(result).toHaveLength(4)
-    expect(result[3].price).toBe(399)
-    expect(result[3].sku).toBeUndefined()
+    expect(result).toHaveLength(7)
+    expect(result[6].price).toBe(399)
+    expect(result[6].sku).toBeUndefined()
   })
 })
 
@@ -337,18 +353,21 @@ describe('initCheckout', () => {
       ok: true,
       json: () => Promise.resolve({
         packs: [
-          { sku: 'mach-one-3-pack', name: '3-Pack', price: 199, sticks: 3, stripePriceId: 'price_a' },
-          { sku: 'mach-one-4-pack', name: '4-Pack', price: 249, sticks: 4, stripePriceId: 'price_b' },
-          { sku: 'mach-one-5-pack', name: '5-Pack', price: 299, sticks: 5, stripePriceId: 'price_c' },
+          { sku: 'mach-one-3-pack-16-inch', name: '3-Pack', price: 199, sticks: 3, stripePriceId: 'price_a' },
+          { sku: 'mach-one-3-pack-20-inch', name: '3-Pack', price: 199, sticks: 3, stripePriceId: 'price_a2' },
+          { sku: 'mach-one-4-pack-16-inch', name: '4-Pack', price: 249, sticks: 4, stripePriceId: 'price_b' },
+          { sku: 'mach-one-4-pack-20-inch', name: '4-Pack', price: 249, sticks: 4, stripePriceId: 'price_b2' },
+          { sku: 'mach-one-5-pack-16-inch', name: '5-Pack', price: 299, sticks: 5, stripePriceId: 'price_c' },
+          { sku: 'mach-one-5-pack-20-inch', name: '5-Pack', price: 299, sticks: 5, stripePriceId: 'price_c2' },
         ],
         clientSecret: 'pi_123_secret_abc',
       }),
     })
 
     const data = await initCheckout(4)
-    expect(data.packs).toHaveLength(3)
+    expect(data.packs).toHaveLength(6)
     expect(data.clientSecret).toBe('pi_123_secret_abc')
-    expect(data.packs[1].name).toBe('4-Pack')
+    expect(data.packs[3].name).toBe('4-Pack')
   })
 
   it('throws on non-ok response', async () => {
@@ -474,9 +493,12 @@ describe('initCheckout', () => {
 describe('checkout init flow integration (jsdom)', () => {
   const MOCK_DATA = {
     packs: [
-      { sku: 'mach-one-3-pack', name: '3-Pack', price: 199, weight: '2 lb 7 oz', sticks: 3, desc: '', stripePriceId: 'price_a' },
-      { sku: 'mach-one-4-pack', name: '4-Pack', price: 249, weight: '3 lb 4 oz', sticks: 4, desc: '', stripePriceId: 'price_b' },
-      { sku: 'mach-one-5-pack', name: '5-Pack', price: 299, weight: '4 lb 1 oz', sticks: 5, desc: '', stripePriceId: 'price_c' },
+      { sku: 'mach-one-3-pack-16-inch', name: '3-Pack', price: 199, size: 16, sticks: 3, stripePriceId: 'price_a' },
+      { sku: 'mach-one-3-pack-20-inch', name: '3-Pack', price: 199, size: 20, sticks: 3, stripePriceId: 'price_a2' },
+      { sku: 'mach-one-4-pack-16-inch', name: '4-Pack', price: 249, size: 16, sticks: 4, stripePriceId: 'price_b' },
+      { sku: 'mach-one-4-pack-20-inch', name: '4-Pack', price: 249, size: 20, sticks: 4, stripePriceId: 'price_b2' },
+      { sku: 'mach-one-5-pack-16-inch', name: '5-Pack', price: 299, size: 16, sticks: 5, stripePriceId: 'price_c' },
+      { sku: 'mach-one-5-pack-20-inch', name: '5-Pack', price: 299, size: 20, sticks: 5, stripePriceId: 'price_c2' },
     ],
     clientSecret: 'pi_123_secret_abc',
   }
@@ -505,7 +527,7 @@ describe('checkout init flow integration (jsdom)', () => {
     globalThis.fetch = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve(MOCK_DATA) })
 
     var data = await initCheckout(4)
-    var pack = data.packs[1]
+    var pack = findPack(data.packs, 4, 16)
 
     renderStickIcons(document.getElementById('cartSticks'), pack.sticks, 'checkout-stick-icon')
     document.getElementById('cartName').textContent = 'Nimble Climbing Sticks — ' + pack.name
@@ -618,13 +640,14 @@ describe('showError', () => {
 })
 
 describe('renderOrderSummary', () => {
-  const PACK = { name: '4-Pack', price: 249.00, sticks: 4, weight: '3 lb 4 oz', desc: 'The sweet spot.' }
+  const PACK = { name: '4-Pack', price: 249.00, sticks: 4, size: 16 }
 
   beforeEach(() => {
     document.body.innerHTML = `
       <h4 id="cartName"></h4>
       <p class="checkout-product-price loading-shimmer loading-shimmer--lg" id="cartPrice"></p>
     `
+    window.history.replaceState({}, '', '?pack=2&size=16')
   })
 
   it('renders pack name and price without crashing', () => {

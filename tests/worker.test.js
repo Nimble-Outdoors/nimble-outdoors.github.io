@@ -36,9 +36,12 @@ function piResponse(clientSecret) {
 function pricesListResponse() {
   return {
     data: [
-      { id: 'price_a', type: 'one_time', active: true, unit_amount: 19900, currency: 'usd', product: { id: 'prod_3', active: true, name: 'Mach One 3 Pack', metadata: { sku: 'mach-one-3-pack' } } },
-      { id: 'price_b', type: 'one_time', active: true, unit_amount: 24900, currency: 'usd', product: { id: 'prod_4', active: true, name: 'Mach One 4 Pack', metadata: { sku: 'mach-one-4-pack' } } },
-      { id: 'price_c', type: 'one_time', active: true, unit_amount: 29900, currency: 'usd', product: { id: 'prod_5', active: true, name: 'Mack One 5 Pack', metadata: { sku: 'mach-one-5-pack' } } },
+      { id: 'price_a', type: 'one_time', active: true, unit_amount: 19900, currency: 'usd', product: { id: 'prod_3', active: true, name: 'Mach One 3 Pack 16"', metadata: { sku: 'mach-one-3-pack-16-inch' } } },
+      { id: 'price_a2', type: 'one_time', active: true, unit_amount: 19900, currency: 'usd', product: { id: 'prod_3b', active: true, name: 'Mach One 3 Pack 20"', metadata: { sku: 'mach-one-3-pack-20-inch' } } },
+      { id: 'price_b', type: 'one_time', active: true, unit_amount: 24900, currency: 'usd', product: { id: 'prod_4', active: true, name: 'Mach One 4 Pack 16"', metadata: { sku: 'mach-one-4-pack-16-inch' } } },
+      { id: 'price_b2', type: 'one_time', active: true, unit_amount: 24900, currency: 'usd', product: { id: 'prod_4b', active: true, name: 'Mach One 4 Pack 20"', metadata: { sku: 'mach-one-4-pack-20-inch' } } },
+      { id: 'price_c', type: 'one_time', active: true, unit_amount: 29900, currency: 'usd', product: { id: 'prod_5', active: true, name: 'Mach One 5 Pack 16"', metadata: { sku: 'mach-one-5-pack-16-inch' } } },
+      { id: 'price_c2', type: 'one_time', active: true, unit_amount: 29900, currency: 'usd', product: { id: 'prod_5b', active: true, name: 'Mach One 5 Pack 20"', metadata: { sku: 'mach-one-5-pack-20-inch' } } },
     ],
   }
 }
@@ -52,10 +55,10 @@ describe('GET /api/prices', () => {
     const data = await res.json()
 
     expect(res.status).toBe(200)
-    expect(data).toHaveLength(3)
-    expect(data[0]).toEqual({ name: 'Mach One 3 Pack', sku: 'mach-one-3-pack', price: 199, stripePriceId: 'price_a' })
-    expect(data[1]).toEqual({ name: 'Mach One 4 Pack', sku: 'mach-one-4-pack', price: 249, stripePriceId: 'price_b' })
-    expect(data[2]).toEqual({ name: 'Mack One 5 Pack', sku: 'mach-one-5-pack', price: 299, stripePriceId: 'price_c' })
+    expect(data).toHaveLength(6)
+    expect(data[0]).toEqual({ name: 'Mach One 3 Pack 16"', sku: 'mach-one-3-pack-16-inch', price: 199, stripePriceId: 'price_a' })
+    expect(data[1]).toEqual({ name: 'Mach One 3 Pack 20"', sku: 'mach-one-3-pack-20-inch', price: 199, stripePriceId: 'price_a2' })
+    expect(data[2]).toEqual({ name: 'Mach One 4 Pack 16"', sku: 'mach-one-4-pack-16-inch', price: 249, stripePriceId: 'price_b' })
   })
 
   it('returns 500 on Stripe API error', async () => {
@@ -95,9 +98,9 @@ describe('POST /api/init-checkout', () => {
     const data = await res.json()
 
     expect(res.status).toBe(200)
-    expect(data.packs).toHaveLength(3)
+    expect(data.packs).toHaveLength(6)
     expect(data.clientSecret).toBe('pi_123_secret_abc')
-    expect(data.packs[1].name).toBe('Mach One 4 Pack')
+    expect(data.packs[3].name).toBe('Mach One 4 Pack 20"')
   })
 
   it('selects the correct pack by 1-based index', async () => {
@@ -115,12 +118,12 @@ describe('POST /api/init-checkout', () => {
 
     const req = new Request('https://nimble-stripe.example.workers.dev/api/init-checkout', {
       method: 'POST',
-      body: JSON.stringify({ packIndex: 3 }),
+      body: JSON.stringify({ packIndex: 5 }),
     })
     await worker.fetch(req)
 
     expect(piBody).toContain('amount=29900')
-    expect(piBody).toContain('description=Nimble+Climbing+Sticks+%E2%80%94+Mack+One+5+Pack')
+    expect(piBody).toContain('description=Nimble+Climbing+Sticks+%E2%80%94+Mach+One+5+Pack+16%22')
   })
 
   it('defaults to pack 2 (index 2) when packIndex is invalid', async () => {
@@ -130,7 +133,7 @@ describe('POST /api/init-checkout', () => {
         return { ok: true, json: () => Promise.resolve(pricesListResponse()) }
       }
       if (url.includes('/prices/')) {
-        return { ok: true, json: () => Promise.resolve(priceResponse(24900)) }
+        return { ok: true, json: () => Promise.resolve(priceResponse(19900)) }
       }
       piBody = opts.body
       return { ok: true, json: () => Promise.resolve(piResponse('pi_s')) }
@@ -142,8 +145,8 @@ describe('POST /api/init-checkout', () => {
     })
     await worker.fetch(req)
 
-    expect(piBody).toContain('amount=24900')
-    expect(piBody).toContain('description=Nimble+Climbing+Sticks+%E2%80%94+Mach+One+4+Pack')
+    expect(piBody).toContain('amount=19900')
+    expect(piBody).toContain('description=Nimble+Climbing+Sticks+%E2%80%94+Mach+One+3+Pack+20%22')
   })
 
   it('passes receipt_email when provided', async () => {

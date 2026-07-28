@@ -88,7 +88,7 @@ description: "Complete your order for Nimble Climbing Sticks"
 <script src="https://js.stripe.com/v3/"></script>
 <script type="module">
   import {
-    STRIPE_PK, getPackDetails, mergePackData, getSpecsHtml, renderStickIcons,
+    STRIPE_PK, getPackDetails, findPack, mergePackData, getSpecsHtml, renderStickIcons,
     getConfirmPaymentOutcome, validateEmail, getShippingFields,
     buildShippingAddress, createPaymentAppearance, createPaymentFields,
     renderSuccessConfirmation, renderTestModeBanner, setSubmitButton, initCheckout, showError
@@ -98,6 +98,12 @@ description: "Complete your order for Nimble Climbing Sticks"
     const params = new URLSearchParams(window.location.search)
     const n = parseInt(params.get('pack')) || 2
     return (n >= 1 && n <= getPackDetails().length) ? n : 2
+  }
+
+  function readSize() {
+    const params = new URLSearchParams(window.location.search)
+    const s = parseInt(params.get('size'))
+    return (s === 16 || s === 20) ? s : 16
   }
 
   function handleRedirect(packIndex) {
@@ -115,13 +121,14 @@ description: "Complete your order for Nimble Climbing Sticks"
       } else if (redirectStatus && redirectStatus !== 'succeeded') {
         showError(document.getElementById('paymentError'), 'Payment could not be processed. Please try again with a different card.')
       }
-      history.replaceState({}, '', window.location.pathname + '?pack=' + packIndex)
+      history.replaceState({}, '', window.location.pathname + '?pack=' + packIndex + '&size=' + readSize())
     })
     return true
   }
 
   function renderOrderSummary(pack, discountInfo) {
-    document.getElementById('cartName').textContent = pack.name
+    const size = readSize()
+    document.getElementById('cartName').textContent = pack.name + ' — ' + size + '"'
     document.getElementById('cartPrice').classList.remove('loading-shimmer', 'loading-shimmer--lg')
     if (discountInfo) {
       updatePriceDisplay(pack, discountInfo)
@@ -168,7 +175,7 @@ description: "Complete your order for Nimble Climbing Sticks"
       return
     }
 
-    let pack = packs[packIndex - 1]
+    let pack = findPack(packs, packIndex + 2, readSize())
     renderOrderSummary(pack, discountInfo)
 
     const stripe = Stripe(STRIPE_PK)
@@ -198,7 +205,7 @@ description: "Complete your order for Nimble Climbing Sticks"
         const data = await initCheckout(packIndex, undefined, code)
         clientSecret = data.clientSecret
         discountInfo = data.discount || null
-        pack = mergePackData(data.packs)[packIndex - 1]
+        pack = findPack(mergePackData(data.packs), packIndex + 2, readSize())
 
         mountPaymentElement(clientSecret)
         updatePriceDisplay(pack, discountInfo)
@@ -246,7 +253,7 @@ description: "Complete your order for Nimble Climbing Sticks"
             elements: elements,
             redirect: 'if_required',
             confirmParams: {
-              return_url: window.location.origin + window.location.pathname + '?pack=' + packIndex,
+              return_url: window.location.origin + window.location.pathname + '?pack=' + packIndex + '&size=' + readSize(),
               receipt_email: email,
               payment_method_data: {
                 billing_details: {

@@ -9,9 +9,12 @@ import {
 } from '../assets/js/packs.js'
 
 const MOCK_PACKS = [
-  { sku: 'mach-one-3-pack', name: '3-Pack', weight: '2 lb 7 oz', sticks: 3, desc: 'Lightest setup.' },
-  { sku: 'mach-one-4-pack', name: '4-Pack', weight: '3 lb 4 oz', sticks: 4, desc: 'The sweet spot.' },
-  { sku: 'mach-one-5-pack', name: '5-Pack', weight: '4 lb 1 oz', sticks: 5, desc: 'Maximum reach.' },
+  { sku: 'mach-one-3-pack-16-inch', name: '3-Pack', size: 16, sticks: 3 },
+  { sku: 'mach-one-3-pack-20-inch', name: '3-Pack', size: 20, sticks: 3 },
+  { sku: 'mach-one-4-pack-16-inch', name: '4-Pack', size: 16, sticks: 4 },
+  { sku: 'mach-one-4-pack-20-inch', name: '4-Pack', size: 20, sticks: 4 },
+  { sku: 'mach-one-5-pack-16-inch', name: '5-Pack', size: 16, sticks: 5 },
+  { sku: 'mach-one-5-pack-20-inch', name: '5-Pack', size: 20, sticks: 5 },
 ]
 
 beforeEach(() => {
@@ -28,9 +31,12 @@ describe('resetPacksCache', () => {
     globalThis.fetch = vi.fn().mockResolvedValue({
       ok: true,
       json: () => Promise.resolve([
-        { sku: 'mach-one-3-pack', price: 495, stripePriceId: 'price_a' },
-        { sku: 'mach-one-4-pack', price: 590, stripePriceId: 'price_b' },
-        { sku: 'mach-one-5-pack', price: 750, stripePriceId: 'price_c' },
+        { sku: 'mach-one-3-pack-16-inch', price: 495, stripePriceId: 'price_a' },
+        { sku: 'mach-one-3-pack-20-inch', price: 495, stripePriceId: 'price_a2' },
+        { sku: 'mach-one-4-pack-16-inch', price: 590, stripePriceId: 'price_b' },
+        { sku: 'mach-one-4-pack-20-inch', price: 590, stripePriceId: 'price_b2' },
+        { sku: 'mach-one-5-pack-16-inch', price: 750, stripePriceId: 'price_c' },
+        { sku: 'mach-one-5-pack-20-inch', price: 750, stripePriceId: 'price_c2' },
       ]),
     })
 
@@ -46,9 +52,12 @@ describe('resetPacksCache', () => {
 
 describe('fetchPacks', () => {
   const MOCK_PRICES = [
-    { sku: 'mach-one-3-pack', price: 495, stripePriceId: 'price_a' },
-    { sku: 'mach-one-4-pack', price: 590, stripePriceId: 'price_b' },
-    { sku: 'mach-one-5-pack', price: 750, stripePriceId: 'price_c' },
+    { sku: 'mach-one-3-pack-16-inch', price: 495, stripePriceId: 'price_a' },
+    { sku: 'mach-one-3-pack-20-inch', price: 495, stripePriceId: 'price_a2' },
+    { sku: 'mach-one-4-pack-16-inch', price: 590, stripePriceId: 'price_b' },
+    { sku: 'mach-one-4-pack-20-inch', price: 590, stripePriceId: 'price_b2' },
+    { sku: 'mach-one-5-pack-16-inch', price: 750, stripePriceId: 'price_c' },
+    { sku: 'mach-one-5-pack-20-inch', price: 750, stripePriceId: 'price_c2' },
   ]
 
   it('returns packs with prices merged from API', async () => {
@@ -59,14 +68,17 @@ describe('fetchPacks', () => {
 
     const packs = await fetchPacks()
 
-    expect(packs).toHaveLength(3)
-    expect(packs[0].sku).toBe('mach-one-3-pack')
+    expect(packs).toHaveLength(6)
+    expect(packs[0].sku).toBe('mach-one-3-pack-16-inch')
     expect(packs[0].price).toBe(495)
     expect(packs[0].stripePriceId).toBe('price_a')
     expect(packs[0].sticks).toBe(3)
-    expect(packs[0].weight).toBe('2 lb 7 oz')
-    expect(packs[1].price).toBe(590)
-    expect(packs[2].price).toBe(750)
+    expect(packs[0].size).toBe(16)
+    expect(packs[1].price).toBe(495)
+    expect(packs[2].price).toBe(590)
+    expect(packs[3].price).toBe(590)
+    expect(packs[4].price).toBe(750)
+    expect(packs[5].price).toBe(750)
   })
 
   it('returns cached result on subsequent calls', async () => {
@@ -101,12 +113,12 @@ describe('fetchPacks', () => {
     globalThis.fetch = vi.fn().mockResolvedValue({
       ok: true,
       json: () => Promise.resolve([
-        { sku: 'mach-one-3-pack', price: 495, stripePriceId: 'price_a' },
-        { sku: 'mach-one-5-pack', price: 750, stripePriceId: 'price_c' },
+        { sku: 'mach-one-3-pack-16-inch', price: 495, stripePriceId: 'price_a' },
+        { sku: 'mach-one-5-pack-20-inch', price: 750, stripePriceId: 'price_c' },
       ]),
     })
 
-    await expect(fetchPacks()).rejects.toThrow('Pricing unavailable for 4-Pack')
+    await expect(fetchPacks()).rejects.toThrow('Pricing unavailable for 3-Pack')
   })
 })
 

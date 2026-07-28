@@ -99,11 +99,7 @@ image: /assets/images/mach-one-single-full-stick.png
       <div class="product-info">
         <h1 class="product-info-title">Mach One<br>Climbing Sticks</h1>
         <p class="product-info-desc">
-        Handcrafted carbon fiber climbing sticks that deliver maximum performance and comfort. 
-        <br/>
-        Length: 20-inch
-        <br/>
-        Weight: 12.8 oz per stick
+        Handcrafted carbon fiber climbing sticks that deliver maximum performance and comfort. Available in 16-inch and 20-inch lengths.
         </p>
 
         <div class="product-pack-selector" id="selector">
@@ -112,6 +108,14 @@ image: /assets/images/mach-one-single-full-stick.png
             <button class="product-pack-toggle" data-index="0">3-Pack</button>
             <button class="product-pack-toggle active" data-index="1">4-Pack</button>
             <button class="product-pack-toggle" data-index="2">5-Pack</button>
+          </div>
+        </div>
+
+        <div class="product-pack-selector">
+          <h3>Choose Your Size</h3>
+          <div class="product-pack-toggles" id="sizeToggles">
+            <button class="product-size-toggle active" data-index="0">16&quot;</button>
+            <button class="product-size-toggle" data-index="1">20&quot;</button>
           </div>
         </div>
 
@@ -138,28 +142,41 @@ image: /assets/images/mach-one-single-full-stick.png
 <!-- Specifications -->
 <section class="shop-c-specs">
   <div class="container">
-    <div class="shop-c-specs-grid">
+    <!-- Model tabs -->
+    <div class="stick-model-tabs" id="stickModelTabs">
+      {% for model in site.data.stick %}
+      <button class="stick-model-tab{% if forloop.first %} active{% endif %}"
+              data-model-index="{{ forloop.index0 }}"
+              data-weight="{{ model.weight | remove: ' oz' }}">
+        {{ model.length }} Model
+      </button>
+      {% endfor %}
+    </div>
+
+    {% for model in site.data.stick %}
+    <div class="shop-c-specs-grid stick-model-panel{% if forloop.first %} active{% endif %}"
+         id="stickPanel{{ forloop.index0 }}">
       <div class="shop-c-specs-desc">
         <h2>Description</h2>
-        <p>Mach One sticks give you the full 20 inches you're used to at just 12.8 oz apiece. Take them on your next hunt and feel the difference — light on your back on the way in, solid and comfortable underfoot on the way up.</p>
+        <p>The Mach One {{ model.length }} model weighs just {{ model.weight }} per stick. Take them on your next hunt and feel the difference — light on your back on the way in, solid and comfortable underfoot on the way up.</p>
         <br>
         <div class="shop-c-story-features">
           <div class="shop-c-story-feature">
-            <h3>{{ site.data.stick.weight }} Per Stick</h3>
+            <h3>{{ model.weight }} Per Stick</h3>
             <p>
-            Handcrafted {{ site.data.stick.material | downcase }}. Lighter than anything else on the market. Period.
+            Handcrafted {{ model.material | downcase }}. Lighter than anything else on the market. Period.
             </p>
           </div>
           <div class="shop-c-story-feature">
-            <h3>{{ site.data.stick.standoff }} Stand-off</h3>
+            <h3>{{ model.standoff }} Stand-off</h3>
             <p>Deep stand-off with a huge foot pad means your foot has room. Climb comfortably even in bulky boots.</p>
           </div>
           <div class="shop-c-story-feature">
-            <h3>{{ site.data.stick.length }} Length</h3>
-            <p>Why settle for a shorter stick to save weight when the Mach One gives you the full 20 inches and is still lighter than anything else out there.</p>
+            <h3>{{ model.length }} Length</h3>
+            <p>Handcrafted carbon fiber composite at {{ model.weight }} — the lightest {{ model.length }} stick on the market.</p>
           </div>
           <div class="shop-c-story-feature">
-            <h3>{{ site.data.stick.attachment | capitalize }}</h3>
+            <h3>{{ model.attachment | capitalize }}</h3>
             <p>The daisy chain rope attachment is an innovative new technique that's dead simple and snugs the stick to the tree like nothing else.</p>
           </div>
         </div>
@@ -167,27 +184,34 @@ image: /assets/images/mach-one-single-full-stick.png
       <div class="shop-c-specs-table-wrap">
         <h2>Specifications</h2>
         <table class="shop-c-specs-table">
-          <tr><td>Weight Per Stick</td><td>{{ site.data.stick.weight }}</td></tr>
-          <tr><td>Stick Length</td><td>{{ site.data.stick.length }}</td></tr>
-          <tr><td>Step-to-Step</td><td>{{ site.data.stick.step_to_step }}</td></tr>
-          <tr><td>Stand-off</td><td>{{ site.data.stick.standoff }}</td></tr>
-          <tr><td>Weight Capacity</td><td>{{ site.data.stick.weight_capacity }}</td></tr>
-          <tr><td>Step Width</td><td>{{ site.data.stick.step }}</td></tr>
-          <tr><td>Material</td><td>{{ site.data.stick.material }}</td></tr>
-          <tr><td>Attachment</td><td>{{ site.data.stick.attachment }}</td></tr>
+          <tr><td>Weight Per Stick</td><td>{{ model.weight }}</td></tr>
+          <tr><td>Stick Length</td><td>{{ model.length }}</td></tr>
+          <tr><td>Step-to-Step</td><td>{{ model.step_to_step }}</td></tr>
+          <tr><td>Stand-off</td><td>{{ model.standoff }}</td></tr>
+          <tr><td>Weight Capacity</td><td>{{ model.weight_capacity }}</td></tr>
+          <tr><td>Step Width</td><td>{{ model.step }}</td></tr>
+          <tr><td>Material</td><td>{{ model.material }}</td></tr>
+          <tr><td>Attachment</td><td>{{ model.attachment }}</td></tr>
         </table>
       </div>
     </div>
+    {% endfor %}
   </div>
 </section>
 
 <script id="pack-data" type="application/json">{{ site.data.packs | jsonify }}</script>
 <script type="module">
-  import { fetchPacks, renderStickIcons } from '/assets/js/packs.js'
+  import { fetchPacks, renderStickIcons, findPack } from '/assets/js/packs.js'
 
   var packs = [];
   var selected = 1;
-  var stickWeightOz = {{ site.data.stick.weight | remove: " oz" | times: 1.0 }};
+  var selectedSize = 0;
+  var stickModels = [
+    {% for model in site.data.stick %}
+    { name: {{ model.name | jsonify }}, weightOz: {{ model.weight | remove: " oz" | times: 1.0 }} }{% unless forloop.last %},{% endunless %}
+    {% endfor %}
+  ];
+  var stickWeightOz = stickModels[0].weightOz;
 
   // Image carousel
   var currentImage = 0;
@@ -238,7 +262,10 @@ image: /assets/images/mach-one-single-full-stick.png
   // Pack selector
   function selectPack(index) {
     selected = index;
-    var pack = packs[index];
+    var sticks = index + 3;
+    var size = selectedSize === 0 ? 16 : 20;
+    var pack = findPack(packs, sticks, size);
+    if (!pack) return;
 
     document.querySelectorAll(".product-pack-toggle").forEach(function(el) {
       el.classList.toggle("active", parseInt(el.dataset.index) === index);
@@ -259,9 +286,9 @@ image: /assets/images/mach-one-single-full-stick.png
       ctaPrice.textContent = "$" + pack.price;
       ctaPrice.classList.remove("loading-shimmer", "loading-shimmer--lg");
     }
-    document.getElementById("orderLink").href = "/checkout.html?pack=" + (index + 1);
+    document.getElementById("orderLink").href = "/checkout.html?pack=" + (index + 1) + "&size=" + (selectedSize === 0 ? 16 : 20);
     var orderLink2 = document.getElementById("orderLink2");
-    if (orderLink2) orderLink2.href = "/checkout.html?pack=" + (index + 1);
+    if (orderLink2) orderLink2.href = "/checkout.html?pack=" + (index + 1) + "&size=" + (selectedSize === 0 ? 16 : 20);
   }
 
   document.querySelectorAll(".product-pack-toggle").forEach(function(el) {
@@ -273,6 +300,39 @@ image: /assets/images/mach-one-single-full-stick.png
   document.querySelectorAll(".shop-c-toggle--sm").forEach(function(el) {
     el.addEventListener("click", function() {
       selectPack(parseInt(this.dataset.index));
+    });
+  });
+
+  function selectSize(index) {
+    selectedSize = index;
+    stickWeightOz = stickModels[index].weightOz;
+
+    document.querySelectorAll(".product-size-toggle").forEach(function(el) {
+      el.classList.toggle("active", parseInt(el.dataset.index) === index);
+    });
+
+    // Sync the spec model tabs
+    document.querySelectorAll('.stick-model-tab').forEach(function(t, i) {
+      t.classList.toggle('active', i === index);
+    });
+    document.querySelectorAll('.stick-model-panel').forEach(function(p, i) {
+      p.classList.toggle('active', i === index);
+    });
+
+    selectPack(selected);
+  }
+
+  document.querySelectorAll(".product-size-toggle").forEach(function(el) {
+    el.addEventListener("click", function() {
+      selectSize(parseInt(this.dataset.index));
+    });
+  });
+
+  // Model tab switching
+  document.querySelectorAll('.stick-model-tab').forEach(function(tab) {
+    tab.addEventListener('click', function() {
+      var idx = parseInt(this.dataset.modelIndex);
+      selectSize(idx);
     });
   });
 

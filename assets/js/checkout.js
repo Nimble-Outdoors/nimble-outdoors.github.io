@@ -9,8 +9,8 @@ export const STRIPE_PK = TEST_MODE
 
 export const IS_TEST_MODE = TEST_MODE
 
-export { getPackDetails } from './pack-details.js'
-import { getPackDetails as _getPackDetails } from './pack-details.js'
+export { getPackDetails, findPack } from './pack-details.js'
+import { getPackDetails as _getPackDetails, findPack as _findPack } from './pack-details.js'
 export { getSpecsHtml, renderStickIcons } from './packs.js'
 import { getSpecsHtml } from './packs.js'
 

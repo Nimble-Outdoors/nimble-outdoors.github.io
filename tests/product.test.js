@@ -7,7 +7,6 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 function productDom() {
   document.body.innerHTML = `
     <p id="packPrice" class="loading-shimmer loading-shimmer--lg"></p>
-    <p id="packDesc"></p>
     <span id="packSticks"></span>
     <span id="packWeight"></span>
     <a id="orderLink" href="/checkout.html?pack=1">Checkout</a>
@@ -16,7 +15,6 @@ function productDom() {
 
 function selectPack(packs, index) {
   var pack = packs[index]
-  document.getElementById("packDesc").textContent = pack.desc
   document.getElementById("packSticks").textContent = pack.sticks
   document.getElementById("packWeight").textContent = pack.weight
   document.getElementById("packPrice").textContent = "$" + pack.price
@@ -32,9 +30,9 @@ function selectPack(packs, index) {
 }
 
 const PACKS = [
-  { name: '3-Pack', desc: 'Lightest setup.', sticks: 3, weight: '2 lb 7 oz', price: 495 },
-  { name: '4-Pack', desc: 'The sweet spot.', sticks: 4, weight: '3 lb 4 oz', price: 620 },
-  { name: '5-Pack', desc: 'Maximum reach.', sticks: 5, weight: '4 lb 1 oz', price: 745 },
+  { name: '3-Pack', sticks: 3, weight: '2 lb 7 oz', price: 495 },
+  { name: '4-Pack', sticks: 4, weight: '3 lb 4 oz', price: 620 },
+  { name: '5-Pack', sticks: 5, weight: '4 lb 1 oz', price: 745 },
 ]
 
 describe('product page selectPack', () => {
@@ -62,10 +60,9 @@ describe('product page selectPack', () => {
     expect(el.classList.contains('loading-shimmer--lg')).toBe(false)
   })
 
-  it('sets packDesc, packSticks, packWeight correctly', () => {
+  it('sets packSticks and packWeight correctly', () => {
     selectPack(PACKS, 2)
 
-    expect(document.getElementById('packDesc').textContent).toBe('Maximum reach.')
     expect(document.getElementById('packSticks').textContent).toBe('5')
     expect(document.getElementById('packWeight').textContent).toBe('4 lb 1 oz')
   })
