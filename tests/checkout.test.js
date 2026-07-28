@@ -364,7 +364,7 @@ describe('initCheckout', () => {
       }),
     })
 
-    const data = await initCheckout(4)
+    const data = await initCheckout('price_b')
     expect(data.packs).toHaveLength(6)
     expect(data.clientSecret).toBe('pi_123_secret_abc')
     expect(data.packs[3].name).toBe('4-Pack')
@@ -375,12 +375,12 @@ describe('initCheckout', () => {
       ok: false,
       json: () => Promise.resolve({ error: 'Invalid pack' }),
     })
-    await expect(initCheckout(99)).rejects.toThrow('Invalid pack')
+    await expect(initCheckout('price_nonexistent')).rejects.toThrow('Invalid pack')
   })
 
   it('throws on network failure', async () => {
     globalThis.fetch = vi.fn().mockRejectedValue(new Error('Network failure'))
-    await expect(initCheckout(4)).rejects.toThrow('Network failure')
+    await expect(initCheckout('price_b')).rejects.toThrow('Network failure')
   })
 
   it('sends email to Worker when provided', async () => {
@@ -392,8 +392,8 @@ describe('initCheckout', () => {
         json: () => Promise.resolve({ packs: [{ name: '4-Pack', price: 249 }], clientSecret: 'pi_s' }),
       }
     })
-    await initCheckout(4, 'buyer@example.com')
-    expect(sentBody.packIndex).toBe(4)
+    await initCheckout('price_b', 'buyer@example.com')
+    expect(sentBody.stripePriceId).toBe('price_b')
     expect(sentBody.email).toBe('buyer@example.com')
   })
 
@@ -406,7 +406,7 @@ describe('initCheckout', () => {
         json: () => Promise.resolve({ packs: [{ name: '4-Pack', price: 249 }], clientSecret: 'pi_s' }),
       }
     })
-    await initCheckout(4)
+    await initCheckout('price_b')
     expect(sentBody.email).toBeUndefined()
   })
 
@@ -419,7 +419,7 @@ describe('initCheckout', () => {
         json: () => Promise.resolve({ packs: [{ name: '4-Pack', price: 249 }], clientSecret: 'pi_s' }),
       }
     })
-    await initCheckout(4, undefined, 'SAVE10')
+    await initCheckout('price_b', undefined, 'SAVE10')
     expect(sentBody.promoCode).toBe('SAVE10')
   })
 
@@ -432,7 +432,7 @@ describe('initCheckout', () => {
         json: () => Promise.resolve({ packs: [{ name: '4-Pack', price: 249 }], clientSecret: 'pi_s' }),
       }
     })
-    await initCheckout(4)
+    await initCheckout('price_b')
     expect(sentBody.promoCode).toBeUndefined()
   })
 
@@ -446,7 +446,7 @@ describe('initCheckout', () => {
       })
     })
 
-    const promise = initCheckout(4)
+    const promise = initCheckout('price_b')
 
     vi.advanceTimersByTime(10_000)
 
@@ -470,7 +470,7 @@ describe('initCheckout', () => {
       }
     })
 
-    await initCheckout(4)
+    await initCheckout('price_b')
     expect(abortSignal).toBeInstanceOf(AbortSignal)
     expect(abortSignal.aborted).toBe(false)
   })
@@ -526,8 +526,8 @@ describe('checkout init flow integration (jsdom)', () => {
   it('renders the selected pack from initCheckout response', async () => {
     globalThis.fetch = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve(MOCK_DATA) })
 
-    var data = await initCheckout(4)
-    var pack = findPack(data.packs, 4, 16)
+    var data = await initCheckout('price_b')
+    var pack = data.packs.find(function (p) { return p.stripePriceId === 'price_b' })
 
     renderStickIcons(document.getElementById('cartSticks'), pack.sticks, 'checkout-stick-icon')
     document.getElementById('cartName').textContent = 'Nimble Climbing Sticks — ' + pack.name
@@ -553,7 +553,7 @@ describe('checkout init flow integration (jsdom)', () => {
     }
     globalThis.Stripe = vi.fn().mockReturnValue(mockStripe)
 
-    var data = await initCheckout(4)
+    var data = await initCheckout('price_b')
     var stripe = Stripe('pk_test_fake')
     var elements = stripe.elements({ clientSecret: data.clientSecret })
     var paymentElement = elements.create('payment')
@@ -585,7 +585,7 @@ describe('checkout init flow integration (jsdom)', () => {
     submitBtn.disabled = true
 
     try {
-      await initCheckout(4)
+    await initCheckout('price_b')
     } catch {
       showError(resultEl, 'Pricing currently unavailable. Please try again later.')
       return
@@ -604,14 +604,13 @@ describe('checkout init flow integration (jsdom)', () => {
       var submitBtn = document.getElementById('submit-btn')
 
       var params = new URLSearchParams(window.location.search)
-      var packIndex = parseInt(params.get('pack')) || 2
-      if (packIndex < 1 || packIndex > getPackDetails().length) packIndex = 2
+      var stripePriceId = params.get('price')
 
       resultEl.innerHTML = '<p style="color:#ccc">Loading…</p>'
       submitBtn.disabled = true
 
       try {
-        await initCheckout(packIndex)
+        await initCheckout(stripePriceId)
       } catch {
         showError(resultEl, 'Pricing currently unavailable. Please try again later.')
         return
@@ -647,7 +646,7 @@ describe('renderOrderSummary', () => {
       <h4 id="cartName"></h4>
       <p class="checkout-product-price loading-shimmer loading-shimmer--lg" id="cartPrice"></p>
     `
-    window.history.replaceState({}, '', '?pack=2&size=16')
+    window.history.replaceState({}, '', '?price=price_b&size=16')
   })
 
   it('renders pack name and price without crashing', () => {

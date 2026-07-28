@@ -88,16 +88,15 @@ description: "Complete your order for Nimble Climbing Sticks"
 <script src="https://js.stripe.com/v3/"></script>
 <script type="module">
   import {
-    STRIPE_PK, getPackDetails, findPack, mergePackData, getSpecsHtml, renderStickIcons,
+    STRIPE_PK, mergePackData, getSpecsHtml, renderStickIcons,
     getConfirmPaymentOutcome, validateEmail, getShippingFields,
     buildShippingAddress, createPaymentAppearance, createPaymentFields,
     renderSuccessConfirmation, renderTestModeBanner, setSubmitButton, initCheckout, showError
   } from '/assets/js/checkout.js'
 
-  function readPackIndex() {
+  function readPriceId() {
     const params = new URLSearchParams(window.location.search)
-    const n = parseInt(params.get('pack')) || 2
-    return (n >= 1 && n <= getPackDetails().length) ? n : 2
+    return params.get('price') || null
   }
 
   function readSize() {
@@ -106,7 +105,7 @@ description: "Complete your order for Nimble Climbing Sticks"
     return (s === 16 || s === 20) ? s : 16
   }
 
-  function handleRedirect(packIndex) {
+  function handleRedirect(stripePriceId) {
     const params = new URLSearchParams(window.location.search)
     const clientSecret = params.get('payment_intent_client_secret')
     if (!clientSecret) return false
@@ -121,7 +120,10 @@ description: "Complete your order for Nimble Climbing Sticks"
       } else if (redirectStatus && redirectStatus !== 'succeeded') {
         showError(document.getElementById('paymentError'), 'Payment could not be processed. Please try again with a different card.')
       }
-      history.replaceState({}, '', window.location.pathname + '?pack=' + packIndex + '&size=' + readSize())
+      var cleanParams = new URLSearchParams()
+      if (stripePriceId) cleanParams.set('price', stripePriceId)
+      cleanParams.set('size', readSize())
+      history.replaceState({}, '', window.location.pathname + '?' + cleanParams.toString())
     })
     return true
   }
@@ -155,16 +157,16 @@ description: "Complete your order for Nimble Climbing Sticks"
     const paymentErrorEl = document.getElementById('paymentError')
     const submitBtn = document.getElementById('submit-btn')
     const form = document.getElementById('checkoutForm')
-    const packIndex = readPackIndex()
+    const stripePriceId = readPriceId()
 
-    if (handleRedirect(packIndex)) return
+    if (handleRedirect(stripePriceId)) return
 
     paymentErrorEl.innerHTML = '<p style="color:#ccc">Loading…</p>'
     submitBtn.disabled = true
 
     let packs, clientSecret, discountInfo
     try {
-      const data = await initCheckout(packIndex)
+      const data = await initCheckout(stripePriceId)
       packs = mergePackData(data.packs)
       clientSecret = data.clientSecret
     } catch (err) {
@@ -175,7 +177,7 @@ description: "Complete your order for Nimble Climbing Sticks"
       return
     }
 
-    let pack = findPack(packs, packIndex + 2, readSize())
+    let pack = packs.find(function (p) { return p.stripePriceId === stripePriceId }) || packs[0]
     renderOrderSummary(pack, discountInfo)
 
     const stripe = Stripe(STRIPE_PK)
@@ -202,10 +204,10 @@ description: "Complete your order for Nimble Climbing Sticks"
       promoApplyBtn.textContent = 'Applying…'
       promoStatus.innerHTML = ''
       try {
-        const data = await initCheckout(packIndex, undefined, code)
+        const data = await initCheckout(stripePriceId, undefined, code)
         clientSecret = data.clientSecret
         discountInfo = data.discount || null
-        pack = findPack(mergePackData(data.packs), packIndex + 2, readSize())
+        pack = packs.find(function (p) { return p.stripePriceId === stripePriceId }) || packs[0]
 
         mountPaymentElement(clientSecret)
         updatePriceDisplay(pack, discountInfo)
@@ -253,7 +255,7 @@ description: "Complete your order for Nimble Climbing Sticks"
             elements: elements,
             redirect: 'if_required',
             confirmParams: {
-              return_url: window.location.origin + window.location.pathname + '?pack=' + packIndex + '&size=' + readSize(),
+              return_url: window.location.origin + window.location.pathname + '?price=' + encodeURIComponent(stripePriceId) + '&size=' + readSize(),
               receipt_email: email,
               payment_method_data: {
                 billing_details: {

@@ -1,6 +1,6 @@
 - name: Mach One 16"
   length: 16 inches
-  weight: 12.5 oz
+  weight: 12.0 oz
   step_to_step: 15 inches
   standoff: 4.9 inches
   weight_capacity: 275 lbs

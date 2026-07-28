@@ -1,5 +1,4 @@
-import { getPackDetails, findPack } from './pack-details.js'
-export { findPack }
+import { getPackDetails } from './pack-details.js'
 
 const PRICES_URL = 'https://nimble-stripe.joey-956.workers.dev/api/prices'
 

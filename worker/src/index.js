@@ -113,7 +113,7 @@ export default {
     // One-shot: fetch prices + create PaymentIntent for the selected pack
     if (request.method === 'POST' && url.pathname === '/api/init-checkout') {
       try {
-        const { packIndex, email, promoCode, mode: requestMode } = await request.json();
+        const { stripePriceId, email, promoCode, mode: requestMode } = await request.json();
         const secret = getSecret(env, requestMode);
 
         const data = await stripeApi('/prices?active=true&expand[]=data.product&limit=10', secret);
@@ -127,8 +127,7 @@ export default {
           }))
           .sort((a, b) => a.price - b.price);
 
-        const idx = (typeof packIndex === 'number' && packIndex >= 1 && packIndex <= packs.length) ? packIndex - 1 : 1;
-        const pack = packs[idx];
+        const pack = packs.find(p => p.stripePriceId === stripePriceId);
         if (!pack) {
           return new Response(JSON.stringify({ error: 'Invalid pack selection' }), {
             status: 400,

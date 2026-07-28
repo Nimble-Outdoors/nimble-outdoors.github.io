@@ -92,7 +92,7 @@ describe('POST /api/init-checkout', () => {
 
     const req = new Request('https://nimble-stripe.example.workers.dev/api/init-checkout', {
       method: 'POST',
-      body: JSON.stringify({ packIndex: 4 }),
+      body: JSON.stringify({ stripePriceId: 'price_b2' }),
     })
     const res = await worker.fetch(req)
     const data = await res.json()
@@ -103,7 +103,7 @@ describe('POST /api/init-checkout', () => {
     expect(data.packs[3].name).toBe('Mach One 4 Pack 20"')
   })
 
-  it('selects the correct pack by 1-based index', async () => {
+  it('selects the correct pack by stripePriceId', async () => {
     let piBody = ''
     globalThis.fetch = vi.fn().mockImplementation(async (url, opts) => {
       if (url.includes('/prices') && !url.includes('/prices/')) {
@@ -118,7 +118,7 @@ describe('POST /api/init-checkout', () => {
 
     const req = new Request('https://nimble-stripe.example.workers.dev/api/init-checkout', {
       method: 'POST',
-      body: JSON.stringify({ packIndex: 5 }),
+      body: JSON.stringify({ stripePriceId: 'price_c' }),
     })
     await worker.fetch(req)
 
@@ -126,27 +126,18 @@ describe('POST /api/init-checkout', () => {
     expect(piBody).toContain('description=Nimble+Climbing+Sticks+%E2%80%94+Mach+One+5+Pack+16%22')
   })
 
-  it('defaults to pack 2 (index 2) when packIndex is invalid', async () => {
-    let piBody = ''
-    globalThis.fetch = vi.fn().mockImplementation(async (url, opts) => {
-      if (url.includes('/prices') && !url.includes('/prices/')) {
-        return { ok: true, json: () => Promise.resolve(pricesListResponse()) }
-      }
-      if (url.includes('/prices/')) {
-        return { ok: true, json: () => Promise.resolve(priceResponse(19900)) }
-      }
-      piBody = opts.body
-      return { ok: true, json: () => Promise.resolve(piResponse('pi_s')) }
-    })
+  it('returns 400 for invalid stripePriceId', async () => {
+    mockStripeStream([mockStripeOnce(pricesListResponse())])
 
     const req = new Request('https://nimble-stripe.example.workers.dev/api/init-checkout', {
       method: 'POST',
-      body: JSON.stringify({ packIndex: 999 }),
+      body: JSON.stringify({ stripePriceId: 'price_nonexistent' }),
     })
-    await worker.fetch(req)
+    const res = await worker.fetch(req)
 
-    expect(piBody).toContain('amount=19900')
-    expect(piBody).toContain('description=Nimble+Climbing+Sticks+%E2%80%94+Mach+One+3+Pack+20%22')
+    expect(res.status).toBe(400)
+    const data = await res.json()
+    expect(data.error).toBe('Invalid pack selection')
   })
 
   it('passes receipt_email when provided', async () => {
@@ -164,7 +155,7 @@ describe('POST /api/init-checkout', () => {
 
     const req = new Request('https://nimble-stripe.example.workers.dev/api/init-checkout', {
       method: 'POST',
-      body: JSON.stringify({ packIndex: 4, email: 'buyer@example.com' }),
+      body: JSON.stringify({ stripePriceId: 'price_b2', email: 'buyer@example.com' }),
     })
     await worker.fetch(req)
 
@@ -186,7 +177,7 @@ describe('POST /api/init-checkout', () => {
 
     const req = new Request('https://nimble-stripe.example.workers.dev/api/init-checkout', {
       method: 'POST',
-      body: JSON.stringify({ packIndex: 4, email: 'buyer@example.com' }),
+      body: JSON.stringify({ stripePriceId: 'price_b2', email: 'buyer@example.com' }),
     })
     await worker.fetch(req)
 
@@ -208,7 +199,7 @@ describe('POST /api/init-checkout', () => {
 
     const req = new Request('https://nimble-stripe.example.workers.dev/api/init-checkout', {
       method: 'POST',
-      body: JSON.stringify({ packIndex: 4 }),
+      body: JSON.stringify({ stripePriceId: 'price_b2' }),
     })
     await worker.fetch(req)
 
@@ -224,7 +215,7 @@ describe('POST /api/init-checkout', () => {
 
     const req = new Request('https://nimble-stripe.example.workers.dev/api/init-checkout', {
       method: 'POST',
-      body: JSON.stringify({ packIndex: 4 }),
+      body: JSON.stringify({ stripePriceId: 'price_b2' }),
     })
     const res = await worker.fetch(req)
 
@@ -236,7 +227,7 @@ describe('POST /api/init-checkout', () => {
 
     const req = new Request('https://nimble-stripe.example.workers.dev/api/init-checkout', {
       method: 'POST',
-      body: JSON.stringify({ packIndex: 4 }),
+      body: JSON.stringify({ stripePriceId: 'price_b2' }),
     })
     const res = await worker.fetch(req)
 
@@ -283,7 +274,7 @@ describe('POST /api/init-checkout', () => {
 
       const req = new Request('https://nimble-stripe.example.workers.dev/api/init-checkout', {
         method: 'POST',
-        body: JSON.stringify({ packIndex: 4, promoCode: 'SAVE10' }),
+        body: JSON.stringify({ stripePriceId: 'price_b2', promoCode: 'SAVE10' }),
       })
       const res = await worker.fetch(req)
       const data = await res.json()
@@ -314,7 +305,7 @@ describe('POST /api/init-checkout', () => {
 
       const req = new Request('https://nimble-stripe.example.workers.dev/api/init-checkout', {
         method: 'POST',
-        body: JSON.stringify({ packIndex: 5, promoCode: 'FLAT50' }),
+        body: JSON.stringify({ stripePriceId: 'price_c', promoCode: 'FLAT50' }),
       })
       const res = await worker.fetch(req)
       const data = await res.json()
@@ -340,7 +331,7 @@ describe('POST /api/init-checkout', () => {
 
       const req = new Request('https://nimble-stripe.example.workers.dev/api/init-checkout', {
         method: 'POST',
-        body: JSON.stringify({ packIndex: 4, promoCode: 'BADCODE' }),
+        body: JSON.stringify({ stripePriceId: 'price_b2', promoCode: 'BADCODE' }),
       })
       const res = await worker.fetch(req)
 
@@ -367,7 +358,7 @@ describe('POST /api/init-checkout', () => {
 
       const req = new Request('https://nimble-stripe.example.workers.dev/api/init-checkout', {
         method: 'POST',
-        body: JSON.stringify({ packIndex: 4, promoCode: 'NOCOUPON' }),
+        body: JSON.stringify({ stripePriceId: 'price_b2', promoCode: 'NOCOUPON' }),
       })
       const res = await worker.fetch(req)
 
@@ -395,7 +386,7 @@ describe('POST /api/init-checkout', () => {
 
       const req = new Request('https://nimble-stripe.example.workers.dev/api/init-checkout', {
         method: 'POST',
-        body: JSON.stringify({ packIndex: 4, promoCode: 'INVALID' }),
+        body: JSON.stringify({ stripePriceId: 'price_b2', promoCode: 'INVALID' }),
       })
       const res = await worker.fetch(req)
 
@@ -423,7 +414,7 @@ describe('POST /api/init-checkout', () => {
 
       const req = new Request('https://nimble-stripe.example.workers.dev/api/init-checkout', {
         method: 'POST',
-        body: JSON.stringify({ packIndex: 4, promoCode: '' }),
+        body: JSON.stringify({ stripePriceId: 'price_b2', promoCode: '' }),
       })
       const res = await worker.fetch(req)
       const data = await res.json()
@@ -454,7 +445,7 @@ describe('POST /api/init-checkout', () => {
 
       const req = new Request('https://nimble-stripe.example.workers.dev/api/init-checkout', {
         method: 'POST',
-        body: JSON.stringify({ packIndex: 4, email: 'buyer@example.com', promoCode: 'SAVE10' }),
+        body: JSON.stringify({ stripePriceId: 'price_b2', email: 'buyer@example.com', promoCode: 'SAVE10' }),
       })
       await worker.fetch(req)
 

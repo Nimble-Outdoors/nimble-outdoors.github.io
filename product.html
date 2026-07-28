@@ -132,7 +132,7 @@ image: /assets/images/mach-one-single-full-stick.png
         </div>
 
         <p class="product-price loading-shimmer loading-shimmer--lg" id="packPrice"></p>
-        <a href="/checkout.html?pack=2" class="btn btn-primary product-order-btn" id="orderLink">Checkout</a>
+        <a href="/checkout.html" class="btn btn-primary product-order-btn" id="orderLink">Checkout</a>
       </div>
 
     </div>
@@ -142,17 +142,6 @@ image: /assets/images/mach-one-single-full-stick.png
 <!-- Specifications -->
 <section class="shop-c-specs">
   <div class="container">
-    <!-- Model tabs -->
-    <div class="stick-model-tabs" id="stickModelTabs">
-      {% for model in site.data.stick %}
-      <button class="stick-model-tab{% if forloop.first %} active{% endif %}"
-              data-model-index="{{ forloop.index0 }}"
-              data-weight="{{ model.weight | remove: ' oz' }}">
-        {{ model.length }} Model
-      </button>
-      {% endfor %}
-    </div>
-
     {% for model in site.data.stick %}
     <div class="shop-c-specs-grid stick-model-panel{% if forloop.first %} active{% endif %}"
          id="stickPanel{{ forloop.index0 }}">
@@ -201,7 +190,8 @@ image: /assets/images/mach-one-single-full-stick.png
 
 <script id="pack-data" type="application/json">{{ site.data.packs | jsonify }}</script>
 <script type="module">
-  import { fetchPacks, renderStickIcons, findPack } from '/assets/js/packs.js'
+  import { fetchPacks, renderStickIcons } from '/assets/js/packs.js'
+  import { findPack, calculateWeight, formatWeight } from '/assets/js/pack-details.js'
 
   var packs = [];
   var selected = 1;
@@ -275,10 +265,8 @@ image: /assets/images/mach-one-single-full-stick.png
     });
 
     document.getElementById("packSticks").textContent = pack.sticks;
-    var totalOz = stickWeightOz * pack.sticks;
-    var lb = Math.floor(totalOz / 16);
-    var oz = Math.round(totalOz % 16);
-    document.getElementById("packWeight").textContent = lb > 0 ? lb + " lb " + oz + " oz" : oz + " oz";
+    var w = calculateWeight(stickWeightOz, pack.sticks);
+    document.getElementById("packWeight").textContent = formatWeight(w.lb, w.oz);
     document.getElementById("packPrice").textContent = "$" + pack.price;
     document.getElementById("packPrice").classList.remove("loading-shimmer", "loading-shimmer--lg");
     var ctaPrice = document.getElementById("ctaPrice");
@@ -286,9 +274,9 @@ image: /assets/images/mach-one-single-full-stick.png
       ctaPrice.textContent = "$" + pack.price;
       ctaPrice.classList.remove("loading-shimmer", "loading-shimmer--lg");
     }
-    document.getElementById("orderLink").href = "/checkout.html?pack=" + (index + 1) + "&size=" + (selectedSize === 0 ? 16 : 20);
+    document.getElementById("orderLink").href = "/checkout.html?price=" + encodeURIComponent(pack.stripePriceId) + "&size=" + (selectedSize === 0 ? 16 : 20);
     var orderLink2 = document.getElementById("orderLink2");
-    if (orderLink2) orderLink2.href = "/checkout.html?pack=" + (index + 1) + "&size=" + (selectedSize === 0 ? 16 : 20);
+    if (orderLink2) orderLink2.href = "/checkout.html?price=" + encodeURIComponent(pack.stripePriceId) + "&size=" + (selectedSize === 0 ? 16 : 20);
   }
 
   document.querySelectorAll(".product-pack-toggle").forEach(function(el) {
@@ -311,10 +299,6 @@ image: /assets/images/mach-one-single-full-stick.png
       el.classList.toggle("active", parseInt(el.dataset.index) === index);
     });
 
-    // Sync the spec model tabs
-    document.querySelectorAll('.stick-model-tab').forEach(function(t, i) {
-      t.classList.toggle('active', i === index);
-    });
     document.querySelectorAll('.stick-model-panel').forEach(function(p, i) {
       p.classList.toggle('active', i === index);
     });
@@ -325,14 +309,6 @@ image: /assets/images/mach-one-single-full-stick.png
   document.querySelectorAll(".product-size-toggle").forEach(function(el) {
     el.addEventListener("click", function() {
       selectSize(parseInt(this.dataset.index));
-    });
-  });
-
-  // Model tab switching
-  document.querySelectorAll('.stick-model-tab').forEach(function(tab) {
-    tab.addEventListener('click', function() {
-      var idx = parseInt(this.dataset.modelIndex);
-      selectSize(idx);
     });
   });
 

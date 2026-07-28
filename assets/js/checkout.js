@@ -118,12 +118,12 @@ async function fetchWithTimeout(url, opts, ms) {
   }
 }
 
-export async function initCheckout(packIndex, email, promoCode) {
+export async function initCheckout(stripePriceId, email, promoCode) {
   const response = await fetchWithTimeout(`${WORKER_URL}/api/init-checkout`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      packIndex,
+      stripePriceId,
       email: email || undefined,
       promoCode: promoCode || undefined,
       mode: TEST_MODE ? 'test' : 'live',
