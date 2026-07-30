@@ -178,7 +178,7 @@
   }
 
   .product-gallery {
-    order: 2;
+    order: 1;
     position: static;
     margin: 0;
     padding: 0;
@@ -188,12 +188,12 @@
     display: none;
   }
 
-  .product-main-image {
+  .product-main-image .splide__track {
     aspect-ratio: 4 / 3;
   }
 
   .product-info {
-    order: 1;
+    order: 2;
   }
 
   .product-info-title {
@@ -272,18 +272,22 @@
     font-size: 1.5rem;
   }
 
-  .product-arrow {
+  .product-main-image .splide__arrow {
     width: 32px;
     height: 32px;
-    font-size: 1.2rem;
     bottom: 0.75rem;
+
+    svg {
+      width: 16px;
+      height: 16px;
+    }
   }
 
-  .product-arrow--prev {
+  .product-main-image .splide__arrow--prev {
     transform: translateX(calc(-50% - 1.25rem));
   }
 
-  .product-arrow--next {
+  .product-main-image .splide__arrow--next {
     transform: translateX(calc(-50% + 1.25rem));
   }
 }

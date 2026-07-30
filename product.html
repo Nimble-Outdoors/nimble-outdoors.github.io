@@ -82,16 +82,20 @@ image: /assets/images/mach-one-single-full-stick.png
             </picture>
           </button>
         </div>
-        <div class="product-main-image" id="mainImageContainer">
-          <button class="product-arrow product-arrow--prev" id="prevImage" aria-label="Previous image">&#8249;</button>
-          <div class="product-main-image-inner" id="mainImageInner">
-            <picture class="product-main-picture" id="mainPicture">
-              <source id="mainSourceWebp" srcset="/assets/images/mach-one-single-full-stick.webp" type="image/webp">
-              <img id="mainImg" src="/assets/images/mach-one-single-full-stick.png" alt="Nimble Mach One Climbing Stick">
-            </picture>
+        <div class="splide product-main-image" id="mainCarousel">
+          <div class="splide__track">
+            <ul class="splide__list">
+              <li class="splide__slide"><img src="/assets/images/mach-one-single-full-stick.png" alt="Nimble Mach One Climbing Stick"></li>
+              <li class="splide__slide"><img src="/assets/images/mach-one-single-stick-horizontal.png" alt="Mach One stick horizontal"></li>
+              <li class="splide__slide"><img src="/assets/images/mach-one-3-pack-horizontal.png" alt="Mach One 3-pack"></li>
+              <li class="splide__slide"><img src="/assets/images/mach-one-3-pack-vertical.png" alt="Mach One 3-pack vertical"></li>
+              <li class="splide__slide"><img src="/assets/images/mach-one-3-pack-sticks.png" alt="Mach One pack detail"></li>
+              <li class="splide__slide"><img src="/assets/images/mach-one-close-up-rope.png" alt="Daisy chain rope close-up"></li>
+              <li class="splide__slide"><img src="/assets/images/mach-one-close-up-rope-2.png" alt="Rope attachment detail"></li>
+              <li class="splide__slide"><img src="/assets/images/mach-one-top-of-stick.png" alt="Top of stick detail"></li>
+            </ul>
           </div>
-          <button class="product-arrow product-arrow--next" id="nextImage" aria-label="Next image">&#8250;</button>
-          <div class="product-image-counter" id="imageCounter">1 / 8</div>
+          <div class="product-image-counter" id="mainCounter">1 / 8</div>
         </div>
       </div>
 
@@ -189,6 +193,7 @@ image: /assets/images/mach-one-single-full-stick.png
 </section>
 
 <script id="pack-data" type="application/json">{{ site.data.packs | jsonify }}</script>
+<script src="https://cdn.jsdelivr.net/npm/@splidejs/splide@4/dist/js/splide.min.js"></script>
 <script type="module">
   import { fetchPacks, renderStickIcons } from '/assets/js/packs.js'
   import { findPack, calculateWeight, formatWeight } from '/assets/js/pack-details.js'
@@ -203,51 +208,30 @@ image: /assets/images/mach-one-single-full-stick.png
   ];
   var stickWeightOz = stickModels[0].weightOz;
 
-  // Image carousel
-  var currentImage = 0;
-  var totalImages = 8;
-  var thumbs = document.querySelectorAll('.product-thumb');
-  var mainPicture = document.getElementById('mainPicture');
-  var mainSourceWebp = document.getElementById('mainSourceWebp');
-  var mainImg = document.getElementById('mainImg');
-  var imageCounter = document.getElementById('imageCounter');
+  // Image carousel (Splide)
+  var mainCarousel = new Splide('#mainCarousel', {
+    type: 'fade',
+    rewind: true,
+    pagination: false,
+    arrows: true,
+    gap: 0,
+    height: '100%',
+  });
 
-  var imageData = [
-    { webp: '/assets/images/mach-one-single-full-stick.webp', png: '/assets/images/mach-one-single-full-stick.png', alt: 'Nimble Mach One Climbing Stick' },
-    { webp: '/assets/images/mach-one-single-stick-horizontal.webp', png: '/assets/images/mach-one-single-stick-horizontal.png', alt: 'Mach One stick horizontal' },
-    { webp: '/assets/images/mach-one-3-pack-horizontal.webp', png: '/assets/images/mach-one-3-pack-horizontal.png', alt: 'Mach One 3-pack' },
-    { webp: '/assets/images/mach-one-3-pack-vertical.webp', png: '/assets/images/mach-one-3-pack-vertical.png', alt: 'Mach One 3-pack vertical' },
-    { webp: '/assets/images/mach-one-3-pack-sticks.webp', png: '/assets/images/mach-one-3-pack-sticks.png', alt: 'Mach One pack detail' },
-    { webp: '/assets/images/mach-one-close-up-rope.webp', png: '/assets/images/mach-one-close-up-rope.png', alt: 'Daisy chain rope close-up' },
-    { webp: '/assets/images/mach-one-close-up-rope-2.webp', png: '/assets/images/mach-one-close-up-rope-2.png', alt: 'Rope attachment detail' },
-    { webp: '/assets/images/mach-one-top-of-stick.webp', png: '/assets/images/mach-one-top-of-stick.png', alt: 'Top of stick detail' }
-  ];
-
-  function showImage(index) {
-    currentImage = index;
-    var img = imageData[index];
-    mainSourceWebp.srcset = img.webp;
-    mainImg.src = img.png;
-    mainImg.alt = img.alt;
-    imageCounter.textContent = (index + 1) + ' / ' + totalImages;
-    thumbs.forEach(function(t, i) {
-      t.classList.toggle('active', i === index);
+  mainCarousel.on('move', function(i) {
+    document.getElementById('mainCounter').textContent = (i + 1) + ' / ' + mainCarousel.length;
+    document.querySelectorAll('.product-thumb').forEach(function(t, idx) {
+      t.classList.toggle('active', idx === i);
     });
-  }
+  });
 
-  thumbs.forEach(function(thumb) {
+  document.querySelectorAll('.product-thumb').forEach(function(thumb) {
     thumb.addEventListener('click', function() {
-      showImage(parseInt(this.dataset.index));
+      mainCarousel.go(parseInt(this.dataset.index));
     });
   });
 
-  document.getElementById('prevImage').addEventListener('click', function() {
-    showImage((currentImage - 1 + totalImages) % totalImages);
-  });
-
-  document.getElementById('nextImage').addEventListener('click', function() {
-    showImage((currentImage + 1) % totalImages);
-  });
+  mainCarousel.mount();
 
   // Pack selector
   function selectPack(index) {
