@@ -45,6 +45,13 @@
   word-wrap: break-word;
   min-width: 0;
 
+  .hero-mach-one-logo {
+    width: 100%;
+    max-width: 22rem;
+    height: auto;
+    margin-bottom: 0.5rem;
+  }
+
   h1 {
     font-size: clamp(2rem, 8vw, 4rem);
     margin-bottom: 0.5rem;

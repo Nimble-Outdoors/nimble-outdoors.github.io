@@ -8,6 +8,10 @@
   padding: 3.75rem 0 1.875rem;
 }
 
+.site-footer--index {
+  background-color: var(--color-bg);
+}
+
 .footer-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
