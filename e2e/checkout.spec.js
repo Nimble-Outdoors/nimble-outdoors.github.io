@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 
-const CHECKOUT_URL = '/checkout.html?pack=2'
+const CHECKOUT_URL = '/checkout.html?price=price_1TnrH1PQzgCkAZkTkAsBRzJw'
 
 async function waitForCheckout(page) {
   await page.goto(CHECKOUT_URL)
