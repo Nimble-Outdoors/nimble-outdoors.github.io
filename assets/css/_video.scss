@@ -1,0 +1,29 @@
+// ============================================
+// How-To Video Section
+// ============================================
+
+.how-to-section {
+  padding: 5rem 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  text-align: center;
+
+  h2 {
+    font-size: 2.5rem;
+    margin-bottom: 2rem;
+    color: var(--color-primary);
+  }
+}
+
+.how-to-video {
+  max-width: 540px;
+  margin: 0 auto;
+
+  video {
+    width: 100%;
+    height: auto;
+    border-radius: 6px;
+    background: #000;
+    display: block;
+  }
+}
