@@ -40,6 +40,25 @@
   }
 }
 
+.footer-socials {
+  display: flex;
+  gap: 1.25rem;
+  justify-content: flex-end;
+  margin-top: 0.625rem;
+
+  a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  svg {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+  }
+}
+
 .footer-made-in-usa {
   margin-bottom: 1.5625rem;
   display: flex;
