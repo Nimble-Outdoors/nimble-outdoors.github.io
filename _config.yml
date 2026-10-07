@@ -5,3 +5,25 @@ url: "https://nimblehunting.com"
 image: /assets/images/sticks-white-with-specs.png
 
 markdown: kramdown
+
+# Keep test suites, local tooling, and the separately deployed Worker out of
+# the public Pages artifact.
+exclude:
+  - .github
+  - AGENTS.md
+  - TODO.md
+  - blob-report
+  - coverage
+  - e2e
+  - eslint.config.js
+  - mise.toml
+  - node_modules
+  - .nyc_output
+  - package.json
+  - package-lock.json
+  - playwright.config.js
+  - playwright-report
+  - test-results
+  - tests
+  - vitest.config.js
+  - worker

@@ -1,0 +1,53 @@
+// ============================================
+// HERO VIDEO — showcase band below the hero
+// ============================================
+
+.video-feature {
+  position: relative;
+  padding: 5rem 0 5.5rem;
+  background: var(--color-bg-alt);
+  text-align: center;
+  overflow: hidden;
+}
+
+.video-feature-inner {
+  max-width: 60rem;
+}
+
+.video-feature-title {
+  font-size: 1.95rem;
+  margin-bottom: 1.5rem;
+}
+
+.video-feature-frame {
+  position: relative;
+  border-radius: 1rem;
+  padding: 2px;
+  background: var(--color-primary);
+  box-shadow:
+    0 30px 80px rgba(0, 0, 0, 0.6),
+    0 0 60px rgba(46, 125, 50, 0.18);
+
+  video {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    border-radius: calc(1rem - 2px);
+    background: #000;
+  }
+}
+
+@media (max-width: 768px) {
+  .video-feature {
+    padding: 3.5rem 0 4rem;
+  }
+
+  .video-feature-frame {
+    border-radius: 0.75rem;
+
+    video {
+      border-radius: calc(0.75rem - 2px);
+    }
+  }
+}

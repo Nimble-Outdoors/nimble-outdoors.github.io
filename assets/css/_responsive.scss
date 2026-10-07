@@ -39,27 +39,6 @@
     max-width: 14rem;
   }
 
-  .hero-title h1 {
-    font-size: 2.5rem;
-    margin-bottom: 0;
-  }
-
-  .hero-overlay-card {
-    position: absolute;
-    top: 12vh;
-    left: 0;
-    right: 0;
-    transform: none;
-    width: auto;
-    max-width: none;
-    padding: 2rem 1.5rem;
-    text-align: center;
-  }
-
-  .hero-overlay-card h2 {
-    font-size: 2.5rem;
-  }
-
   .hero-overlay-cta {
     position: absolute;
     top: auto;
@@ -72,10 +51,6 @@
     h2 {
       font-size: 2.5rem;
     }
-  }
-
-  .hero-overlay-desc {
-    font-size: 0.85rem;
   }
 
   // Features & CTA
@@ -268,10 +243,6 @@
     }
   }
 
-  .hero-overlay-card h2 {
-    font-size: 1.75rem;
-  }
-
   .cta-section h2 {
     font-size: 1.5rem;
   }
@@ -300,11 +271,14 @@
 // Desktop Large: min-width 1200px
 // --------------------------------------------
 
-@media (min-width: 1200px) {
-  .hero-content p {
-    max-width: 1100px;
+@media (max-width: 1199px) {
+  .hero-bg img {
+    object-fit: cover;
+    object-position: center;
   }
+}
 
+@media (min-width: 1200px) {
   .hero-text {
     padding-left: 10vw;
   }

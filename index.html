@@ -3,8 +3,6 @@ layout: default
 title: "Nimble Outdoors — Nimble Climbing Sticks"
 description: "Ultra lightweight carbon fiber climbing sticks for mobile hunters."
 image: /assets/images/sticks-white-with-specs.png
-hero:
-  title: "Introducing..."
 ---
 
 <script type="application/ld+json">
@@ -25,7 +23,7 @@ hero:
 <section class="hero">
   <picture class="hero-bg">
     <source srcset="/assets/images/hero-1.webp" type="image/webp">
-    <img src="/assets/images/hero-1.png" alt="" loading="lazy">
+    <img src="/assets/images/hero-1.png" alt="" fetchpriority="high">
   </picture>
   <div class="hero-text">
     <img src="/assets/images/mach_one_logo.png" alt="Mach One Logo" class="hero-mach-one-logo">
@@ -37,6 +35,15 @@ hero:
   </div>
 </section>
 
+<section class="video-feature">
+  <div class="container video-feature-inner">
+    <h2 class="video-feature-title">Watch the Video</h2>
+    <div class="video-feature-frame">
+      <video class="video-feature-video" src="/assets/videos/hero.mp4" controls playsinline preload="metadata"
+        poster="/assets/images/hero-poster.jpg"></video>
+    </div>
+  </div>
+</section>
 
 <section class="shop-c-story">
   <div class="container">

@@ -33,6 +33,15 @@ jobs:
       - name: Build with Jekyll
         run: bundle exec jekyll build --baseurl "${{ steps.deployment.outputs.page_url }}"
 
+      - name: Verify test files are excluded
+        run: |
+          for path in .github AGENTS.md TODO.md blob-report coverage e2e eslint.config.js mise.toml node_modules .nyc_output package.json package-lock.json playwright.config.js playwright-report test-results tests vitest.config.js worker; do
+            if [ -e "_site/$path" ]; then
+              echo "::error::_site/$path must not be included in the Pages artifact"
+              exit 1
+            fi
+          done
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
