@@ -1,0 +1,64 @@
+// ============================================
+// TESTIMONIALS — What people are saying
+// ============================================
+
+.testimonials {
+  padding: 4rem 0 5rem;
+  background: var(--color-bg);
+  text-align: center;
+}
+
+.testimonials-title {
+  font-size: 2rem;
+  color: var(--color-primary);
+  margin-bottom: 2.5rem;
+}
+
+.testimonials-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.875rem;
+  max-width: 64rem;
+  margin: 0 auto;
+  text-align: left;
+}
+
+.testimonial-card {
+  background: var(--color-bg-alt);
+  border-radius: 8px;
+  padding: 2rem 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  border-top: 4px solid var(--color-primary);
+}
+
+.testimonial-quote {
+  color: var(--color-text);
+  font-size: 1.05rem;
+  line-height: 1.6;
+  flex: 1;
+}
+
+.testimonial-name {
+  color: var(--color-text-light);
+  font-size: 0.9rem;
+  font-style: italic;
+}
+
+@media (max-width: 768px) {
+  .testimonials {
+    padding: 3rem 0 3.5rem;
+  }
+
+  .testimonials-title {
+    font-size: 1.5rem;
+    padding: 0 1.5rem;
+  }
+
+  .testimonials-grid {
+    grid-template-columns: 1fr;
+    max-width: 28rem;
+    padding: 0 1.5rem;
+  }
+}
